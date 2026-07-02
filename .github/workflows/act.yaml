@@ -1,0 +1,42 @@
+name: act
+
+on: # yamllint disable-line rule:truthy
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GRIT_TELEMETRY_DISABLED: true
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -o errexit -o nounset -o pipefail -o xtrace {0}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref || github.ref }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          version: 0.11.26
+      - name: Create virtual environment
+        run: uv venv --python 3.13 --allow-existing
+      - name: Install test requirements
+        run: uv pip sync requirements.txt
+      - name: Install Styleforce and GritQL
+        run: uv pip install .
+      - name: Run tests
+        run: .venv/bin/pytest -q
+
+run-name: Testing on behalf of ${{ github.actor }}
