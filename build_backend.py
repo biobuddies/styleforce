@@ -31,31 +31,28 @@ ARCHIVE_SHA256 = {
     "x86_64-apple-darwin": "b502f031cfe72b58e193282faf53531a5aac01c7bfa779421fc52652b652010e",
     "aarch64-unknown-linux-gnu": "8e37415c45595716386d018f4d279a78f80261a7c7592c37632e7ce7d0934870",
     "x86_64-unknown-linux-gnu": "94b34641a538ca0e85a92aa7f0ac94077fc6d663c996d0556c781d3d4c163149",
-    "x86_64-pc-windows-msvc": "5c44ee3336514ab8c3fa81c5301bd54fca82a9ddec43f87d7181be757fbab084",
 }
 
 
-def _target() -> tuple[str, str, str]:
+def _target() -> tuple[str, str]:
     machine = platform.machine().lower()
     arch = "aarch64" if machine in {"arm64", "aarch64"} else "x86_64"
 
     if sys.platform == "darwin":
         tag = "macosx_11_0_arm64" if arch == "aarch64" else "macosx_10_9_x86_64"
-        return f"{arch}-apple-darwin", tag, "grit"
+        return f"{arch}-apple-darwin", tag
     if sys.platform == "linux":
         tag = (
             "manylinux_2_17_aarch64.manylinux2014_aarch64"
             if arch == "aarch64"
             else "manylinux_2_17_x86_64.manylinux2014_x86_64"
         )
-        return f"{arch}-unknown-linux-gnu", tag, "grit"
-    if sys.platform == "win32" and arch == "x86_64":
-        return "x86_64-pc-windows-msvc", "win_amd64", "grit.exe"
+        return f"{arch}-unknown-linux-gnu", tag
     raise RuntimeError(f"GritQL has no supported binary for {sys.platform}/{machine}")
 
 
 def _download_grit(destination: Path) -> str:
-    target, wheel_platform, executable = _target()
+    target, wheel_platform = _target()
     asset = f"grit-{target}.tar.gz"
     url = f"{RELEASE_URL}/{asset}"
     archive = destination / asset
@@ -78,11 +75,11 @@ def _download_grit(destination: Path) -> str:
                     raise RuntimeError(f"unsafe archive member: {member.name}")
             bundle.extractall(unpacked)
 
-    matches = list(unpacked.rglob(executable))
+    matches = list(unpacked.rglob("grit"))
     if len(matches) != 1:
-        raise RuntimeError(f"expected one {executable!r} in {asset}, found {len(matches)}")
-    shutil.copyfile(matches[0], destination / executable)
-    os.chmod(destination / executable, 0o755)
+        raise RuntimeError(f"expected one 'grit' in {asset}, found {len(matches)}")
+    shutil.copyfile(matches[0], destination / "grit")
+    os.chmod(destination / "grit", 0o755)
     return wheel_platform
 
 
@@ -106,7 +103,7 @@ def build_wheel(wheel_directory: str, config_settings=None, metadata_directory=N
     with tempfile.TemporaryDirectory() as temporary:
         staging = Path(temporary)
         wheel_platform = _download_grit(staging)
-        executable = _target()[2]
+        executable = "grit"
         filename = f"{NAME}-{VERSION}-py3-none-{wheel_platform}.whl"
         output = Path(wheel_directory) / filename
         output.parent.mkdir(parents=True, exist_ok=True)
