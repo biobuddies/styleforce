@@ -37,6 +37,6 @@ jobs:
       - name: Install Styleforce and GritQL
         run: uv pip install .
       - name: Run tests
-        run: .venv/bin/pytest -q
+        run: .venv/bin/pytest -vv -s
 
 run-name: Testing on behalf of ${{ github.actor }}

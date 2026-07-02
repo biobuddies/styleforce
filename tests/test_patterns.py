@@ -17,6 +17,12 @@ def test_inline_single_use_assignment(tmp_path: Path) -> None:
     assert grit is not None, "install styleforce into the test environment first"
     shutil.copytree(ROOT / ".grit", tmp_path / ".grit")
 
+    specification = ROOT / ".grit/patterns/inline_single_use_assignment.md"
+    print("\nGritQL native test specification")
+    print("Two Python blocks: input, then expected output.")
+    print("One Python block: input expected to produce no rewrite.")
+    print(specification.read_text())
+
     result = subprocess.run(
         [
             grit,
@@ -30,5 +36,9 @@ def test_inline_single_use_assignment(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
     )
+
+    print("GritQL native test results")
+    print(result.stdout, end="")
+    print(result.stderr, end="", file=sys.stderr)
 
     assert result.returncode == 0, result.stdout + result.stderr
