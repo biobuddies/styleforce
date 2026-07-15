@@ -89,7 +89,7 @@ def _metadata() -> bytes:
         f"Name: {NAME}\n"
         f"Version: {VERSION}\n"
         "Summary: Shared GritQL rules for enforcing source-code style.\n"
-        "Requires-Python: >=3.9\n"
+        "Requires-Python: >=3.15\n"
     ).encode()
 
 
