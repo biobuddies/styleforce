@@ -18,11 +18,12 @@ language python
     $other <: not `$variable = $value`
   },
   $use_statement <: contains bubble($variable, $value) `$variable` => $value,
+  $use => `$use_statement  # $variable`,
   $assignment => .
 }
 ```
 
-## Inline two assignments — expect values substituted and assignments removed
+## Inline two assignments — expect values substituted with the name kept as a comment
 
 ```python
 wells = ('A01', 'B02')
@@ -34,9 +35,9 @@ print(T8M_90964_c23CT)
 
 ```python
 
-print(('A01', 'B02'))
+print(('A01', 'B02'))  # wells
 
-print('GGCCGAAGGAGACGCTGCAGT')
+print('GGCCGAAGGAGACGCTGCAGT')  # T8M_90964_c23CT
 ```
 
 ## No assignment to inline — expect no rewrite
