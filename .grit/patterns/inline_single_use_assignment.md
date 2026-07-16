@@ -61,3 +61,13 @@ T8M_90964_c23CT = 'GGCCGAAGGAGACGCTGCAGT'
 print(T8M_90964_c23CT)
 log(T8M_90964_c23CT)
 ```
+
+## Grit-ignore comment disables inlining — expect no rewrite
+
+Inlining would evaluate `get_time()` after the `sleep`, so opt out with `grit-ignore`.
+
+```python
+before = get_time()
+sleep(1)
+print(get_time() - before)  # grit-ignore
+```
