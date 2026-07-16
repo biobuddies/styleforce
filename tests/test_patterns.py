@@ -3,7 +3,7 @@ from __future__ import annotations
 import shutil
 import sys
 from pathlib import Path
-from subprocess import STDOUT, check_output
+from subprocess import PIPE, STDOUT, run
 
 
 ROOT = Path(__file__).parents[1]
@@ -16,7 +16,7 @@ def test_inline_single_use_assignment(tmp_path: Path) -> None:
     assert grit is not None, "install styleforce into the test environment first"
     shutil.copytree(ROOT / ".grit", tmp_path / ".grit")
 
-    result = check_output(
+    result = run(
         [
             grit,
             "patterns",
@@ -25,9 +25,11 @@ def test_inline_single_use_assignment(tmp_path: Path) -> None:
             "--verbose",
         ],
         cwd=tmp_path,
+        stdout=PIPE,
         stderr=STDOUT,
         text=True,
     )
 
     print("GritQL native test results")
-    print(result, end="")
+    print(result.stdout, end="")
+    assert result.returncode == 0, result.stdout
