@@ -3,57 +3,27 @@ from __future__ import annotations
 import shutil
 import sys
 from pathlib import Path
-from subprocess import PIPE, STDOUT, check_output, run
+from subprocess import PIPE, STDOUT, run
 
 
 ROOT = Path(__file__).parents[1]
 
 
-def test_inline_single_use_assignment(tmp_path: Path) -> None:
-    """Delegate the Markdown input/output samples to Grit's native test runner."""
-    environment_grit = Path(sys.executable).with_name("grit")
-    grit = environment_grit if environment_grit.is_file() else shutil.which("grit")
-    assert grit is not None, "install styleforce into the test environment first"
-    shutil.copytree(ROOT / ".grit", tmp_path / ".grit")
+def test_patterns(tmp_path: Path) -> None:
+    """Delegate every pattern's Markdown input/output samples to Grit's native test runner."""
+    environment_grit = Path(sys.executable).with_name('grit')
+    grit = environment_grit if environment_grit.is_file() else shutil.which('grit')
+    assert grit is not None, 'install styleforce into the test environment first'
+    shutil.copytree(ROOT / '.grit', tmp_path / '.grit')
 
     result = run(
-        [
-            grit,
-            "patterns",
-            "test",
-            "--filter=inline_single_use_assignment",
-            "--verbose",
-        ],
+        [grit, 'patterns', 'test', '--verbose'],
         cwd=tmp_path,
         stdout=PIPE,
         stderr=STDOUT,
         text=True,
     )
 
-    print("GritQL native test results")
-    print(result.stdout, end="")
+    print('GritQL native test results')
+    print(result.stdout, end='')
     assert result.returncode == 0, result.stdout
-
-
-def test_inner_function_naming(tmp_path: Path) -> None:
-    """Delegate the Markdown input/output samples to Grit's native test runner."""
-    environment_grit = Path(sys.executable).with_name("grit")
-    grit = environment_grit if environment_grit.is_file() else shutil.which("grit")
-    assert grit is not None, "install styleforce into the test environment first"
-    shutil.copytree(ROOT / ".grit", tmp_path / ".grit")
-
-    result = check_output(
-        [
-            grit,
-            "patterns",
-            "test",
-            "--filter=inner_function_naming",
-            "--verbose",
-        ],
-        cwd=tmp_path,
-        stderr=STDOUT,
-        text=True,
-    )
-
-    print("GritQL native test results")
-    print(result, end="")
