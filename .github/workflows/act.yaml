@@ -22,21 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          ref: ${{ github.head_ref || github.ref }}
-      - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
-        with:
-          enable-cache: true
-          version: 0.11.26
-      - name: Create virtual environment
-        run: uv venv --python 3.15 --allow-existing
-      - name: Install test requirements
-        run: uv pip sync requirements.txt
-      - name: Install Styleforce and GritQL
-        run: uv pip install .
-      - name: Run tests
-        run: .venv/bin/pytest -vv -s
+      - uses: astral-sh/setup-uv@v8
+      - run: uv venv --python 3.15 --allow-existing
+      - run: uv pip sync requirements.txt
+      - run: uv pip install .
+      - run: .venv/bin/pytest -vv -s
 
 run-name: Testing on behalf of ${{ github.actor }}

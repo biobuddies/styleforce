@@ -2,23 +2,23 @@
 title: Inline single-use assignment
 ---
 
-Inline Python assignments that are used exactly once in the following statements.
+Inline Python assignments that are read exactly once.
 
 ```grit
 engine marzano(0.1)
 language python
 
-`$use_stmt` as $use where {
-  $use <: after `$x = $e` as $assign,
-  $use <: contains `$x`,
-  $use <: within module(statements=$stmts),
-  $stmts <: not some $other where {
-    $other <: contains `$x`,
+`$use_statement` as $use where {
+  $use <: after `$variable = $value` as $assignment,
+  $use <: contains `$variable`,
+  $use <: within module(statements=$statements),
+  $statements <: not some $other where {
+    $other <: contains `$variable`,
     $other <: not $use,
-    $other <: not `$x = $e`
+    $other <: not `$variable = $value`
   },
-  $use_stmt <: contains bubble($x, $e) `$x` => $e,
-  $assign => .
+  $use_statement <: contains bubble($variable, $value) `$variable` => $value,
+  $assignment => .
 }
 ```
 
