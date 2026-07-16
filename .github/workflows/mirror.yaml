@@ -1,0 +1,22 @@
+name: mirror
+
+on: # yamllint disable-line rule:truthy
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -o errexit -o nounset -o pipefail -o xtrace {0}
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 mirror.py
+
+run-name: Mirroring GritQL on behalf of ${{ github.actor }}

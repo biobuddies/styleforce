@@ -22,9 +22,12 @@ NAME = "styleforce"
 VERSION = "0.1.0"
 DIST_INFO = f"{NAME}-{VERSION}.dist-info"
 GRIT_VERSION = "v0.1.0-alpha.1743007075"
-RELEASE_URL = (
-    "https://github.com/getgrit/gritql/releases/download/"
-    f"{GRIT_VERSION}"
+UPSTREAM_URL = f"https://github.com/getgrit/gritql/releases/download/{GRIT_VERSION}"
+# Claude Code on the web returns 403 for upstream getgrit downloads but allows this repository's
+# own releases, which mirror.yaml populates from UPSTREAM_URL.
+RELEASE_URL = os.environ.get(
+    "STYLEFORCE_GRIT_RELEASE_URL",
+    f"https://github.com/biobuddies/styleforce/releases/download/grit-{GRIT_VERSION}",
 )
 ARCHIVE_SHA256 = {
     "aarch64-apple-darwin": "7ab8c7eea90799ae35c86f2a9b7e48e56b91a62e6a459b910dde1a3daa066bf3",
@@ -54,14 +57,24 @@ def _target() -> tuple[str, str]:
 def _download_grit(destination: Path) -> str:
     target, wheel_platform = _target()
     asset = f"grit-{target}.tar.gz"
-    url = f"{RELEASE_URL}/{asset}"
     archive = destination / asset
-
-    urllib.request.urlretrieve(url, archive)
     expected = ARCHIVE_SHA256[target]
-    actual = hashlib.sha256(archive.read_bytes()).hexdigest()
-    if actual != expected:
-        raise RuntimeError(f"checksum mismatch for {asset}: {actual} != {expected}")
+
+    # Prefer the mirror (reachable from Claude Code on the web), falling back to upstream so
+    # builds keep working before mirror.yaml has populated the mirror release.
+    errors = []
+    for base in dict.fromkeys((RELEASE_URL, UPSTREAM_URL)):
+        try:
+            urllib.request.urlretrieve(f"{base}/{asset}", archive)
+        except OSError as error:
+            errors.append(f"{base}: {error}")
+            continue
+        actual = hashlib.sha256(archive.read_bytes()).hexdigest()
+        if actual != expected:
+            raise RuntimeError(f"checksum mismatch for {asset}: {actual} != {expected}")
+        break
+    else:
+        raise RuntimeError(f"could not download {asset}: {'; '.join(errors)}")
 
     unpacked = destination / "unpacked"
     unpacked.mkdir()
