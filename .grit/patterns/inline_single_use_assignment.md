@@ -18,7 +18,8 @@ language python
     $other <: not `$variable = $value`
   },
   $use_statement <: contains bubble($variable, $value) `$variable` => $value,
-  $use => `$use_statement  # $variable`,
+  $assignment <: `$name = $value`,
+  $use => `$use_statement  # $name`,
   $assignment => .
 }
 ```
