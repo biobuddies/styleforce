@@ -1,0 +1,17 @@
+[build-system]
+requires = []
+build-backend = 'build_backend'
+backend-path = ['.']
+
+[project]
+name = 'styleforce'
+version = '0.1.0'
+description = 'Shared GritQL rules for enforcing source-code style.'
+requires-python = '>=3.15'
+dependencies = [
+]
+
+[dependency-groups]
+test = [
+  'pytest>=8',
+]

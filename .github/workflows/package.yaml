@@ -1,0 +1,62 @@
+name: package
+
+on: # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - main
+      - claude/pi-package-quote-style-6lfmt5
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GRIT_TELEMETRY_DISABLED: true
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -o errexit -o nounset -o pipefail -o xtrace {0}
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false # one runner's trouble must not cancel the wheels that already built
+      matrix:
+        os:
+          - macos-14
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv python install 3.15
+      - run: uv build --wheel --python 3.15 --out-dir dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.os }}
+          path: dist/*.whl
+
+  release:
+    needs: build
+    if: ${{ !cancelled() }} # publish whatever wheels built, even if a leg failed
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: dist
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create v${{ github.run_id }} dist/*.whl
+          --repo ${{ github.repository }}
+          --target ${{ github.sha }}
+          --title v${{ github.run_id }}
+          --notes 'GritQL CLI wheels built from ${{ github.sha }}'
+      - uses: astral-sh/setup-uv@v7
+      - continue-on-error: true # PyPI is a best-effort attempt after the release is safely stored
+        run: uv publish dist/*.whl
