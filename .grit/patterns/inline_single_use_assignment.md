@@ -24,7 +24,7 @@ language python
 }
 ```
 
-## Inline two assignments — expect values substituted with the name kept as a comment
+## Avoid assignments used once
 
 ```python
 wells = ('A01', 'B02')
@@ -35,13 +35,12 @@ print(T8M_90964_c23CT)
 ```
 
 ```python
-
 print(('A01', 'B02'))  # wells
 
 print('GGCCGAAGGAGACGCTGCAGT')  # T8M_90964_c23CT
 ```
 
-## No assignment to inline — expect no rewrite
+## Zero assignments remain unchanged
 
 ```python
 print('A01')
@@ -55,7 +54,7 @@ wells = ('A01', 'B02')
 print('dispensing to plate')
 ```
 
-## Assignment used twice — expect no rewrite
+## Assignments used twice remain unchanged
 
 ```python
 # https://pmc.ncbi.nlm.nih.gov/articles/instance/6810757/bin/NIHMS1037790-supplement-supp_info.pdf

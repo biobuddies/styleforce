@@ -114,6 +114,9 @@ def build_wheel(wheel_directory: str, config_settings=None, metadata_directory=N
             f"{NAME}-{VERSION}.data/data/share/{NAME}/.grit/patterns/inline_single_use_assignment.md": Path(
                 ".grit/patterns/inline_single_use_assignment.md"
             ).read_bytes(),
+            f"{NAME}-{VERSION}.data/data/share/{NAME}/.grit/patterns/inner_function_naming.md": Path(
+                ".grit/patterns/inner_function_naming.md"
+            ).read_bytes(),
             f"{DIST_INFO}/METADATA": _metadata(),
             f"{DIST_INFO}/WHEEL": (
                 "Wheel-Version: 1.0\n"
