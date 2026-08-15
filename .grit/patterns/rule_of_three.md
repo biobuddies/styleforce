@@ -46,3 +46,56 @@ class StrFTime:
             template += f" || '{tz_literal}'"
         return self.as_sql(compiler, connection, template=template)
 ```
+
+## Inline a git-remote helper that has only one caller
+
+```python
+def _git_repository_name() -> str | None:
+    if not (Path.cwd() / '.git').exists():
+        return None
+    try:
+        remote = check_output(['git', 'remote', 'get-url', 'origin']).decode().strip()
+    except CalledProcessError:
+        return None
+    if repository := search(r'github.com[:/][^/]+/([^/]+)', remote):
+        return repository.group(1).removesuffix('.git')
+    raise ValueError(f'Unexpected origin URL: {remote!r}')
+
+
+def cona() -> str:
+    """COde NAme, a four-letter abbreviation."""
+    if cona := getenv('CONA'):
+        pass
+    elif repository := getenv('GITHUB_REPOSITORY'):
+        cona = repository.split('/')[-1]
+    elif repository := _git_repository_name():
+        cona = repository
+    elif virtual_environment := getenv('VIRTUAL_ENV'):
+        cona = Path(virtual_environment).parent.name
+    else:
+        cona = Path.cwd().name
+    if fullmatch(r'[A-Za-z0-9._-]+', cona):
+        return cona
+    raise ValueError(f'Unexpected CONA characters: {cona!r}')
+```
+
+```python
+def cona() -> str:
+    """COde NAme, a four-letter abbreviation."""
+    cona = getenv('CONA') or ''
+    if not cona and (repository_slug := getenv('GITHUB_REPOSITORY')):
+        cona = repository_slug.split('/')[-1]
+    if not cona and (Path.cwd() / '.git').exists():
+        try:
+            remote = check_output(['git', 'remote', 'get-url', 'origin']).decode().strip()
+        except CalledProcessError:
+            remote = ''
+        if remote and (repository := search(r'github.com[:/][^/]+/([^/]+)', remote)):
+            cona = repository.group(1).removesuffix('.git')
+    if not cona and (virtual_environment := getenv('VIRTUAL_ENV')):
+        cona = Path(virtual_environment).parent.name
+    cona = cona or Path.cwd().name
+    if fullmatch(r'[A-Za-z0-9._-]+', cona):
+        return cona
+    raise ValueError(f'Unexpected CONA characters: {cona!r}')
+```
