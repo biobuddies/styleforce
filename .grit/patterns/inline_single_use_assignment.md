@@ -9,7 +9,8 @@ engine marzano(0.1)
 language python
 
 `$use_statement` as $use where {
-  $use <: after `$variable = $value` as $assignment,
+  $use <: after `$variable = $value
+` as $assignment,
   $use <: contains `$variable`,
   $use <: within module(statements=$statements),
   $statements <: not some $other where {
