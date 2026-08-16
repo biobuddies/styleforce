@@ -16,7 +16,8 @@ test = [
 
 [tool.maturin]
 # The Rust crate that produces the native `styleforce_py` extension module.
-manifest-path = 'Cargo.toml'
+# Must point at the crate's Cargo.toml (with [package]), not the workspace root.
+manifest-path = 'rust/styleforce_py/Cargo.toml'
 # We build an abi3-py312 wheel, so the resulting artifact is
 # `styleforce-0.0.3-cp312-abi3-<platform>.whl` and works on any Python >= 3.12.
 # TODO: verify maturin picks up the correct platform tag for each CI runner.
