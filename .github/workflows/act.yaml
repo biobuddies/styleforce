@@ -36,6 +36,8 @@ jobs:
       # maturin build backend. Add it to requirements or install explicitly.
       - run: uv pip install maturin
       - run: uv pip install .
-      - run: .venv/bin/pytest -vv -s
+      # Restrict pytest to our tests/ dir so it doesn't try to collect tests
+      # from the vendored gritql submodule (vendor/gritql/python/tests/ etc).
+      - run: .venv/bin/pytest tests/ -vv -s
 
 run-name: Testing on behalf of ${{ github.actor }}
