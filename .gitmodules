@@ -1,0 +1,3 @@
+[submodule "vendor/gritql"]
+	path = vendor/gritql
+	url = https://github.com/biomejs/gritql.git

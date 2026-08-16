@@ -29,8 +29,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      # TODO: cross-compilation for aarch64-linux may need a cross toolchain
+      # (e.g. `cargo-zigbuild` or `cross`). The ubuntu-24.04-arm runner is
+      # native aarch64, so it builds natively; verify the other two legs are
+      # also native (macos-14 = arm64, ubuntu-latest = x86_64). If any leg
+      # needs cross-compilation, add the appropriate toolchain here.
       - uses: astral-sh/setup-uv@v7
       - run: uv python install 3.12
+      # TODO: maturin builds the abi3-py312 wheel from the Rust workspace.
+      # Verify `uv build --wheel` invokes maturin correctly via the
+      # [build-system] config in pyproject.toml.
+      - run: uv pip install maturin
       - run: uv build --wheel --python 3.12 --out-dir dist
       - uses: actions/upload-artifact@v4
         with:
@@ -56,7 +68,7 @@ jobs:
           --repo ${{ github.repository }}
           --target ${{ github.sha }}
           --title v${{ github.run_id }}
-          --notes 'GritQL CLI wheels built from ${{ github.sha }}'
+          --notes 'GritQL native wheels built from ${{ github.sha }}'
       - uses: astral-sh/setup-uv@v7
       - continue-on-error: true # PyPI is a best-effort attempt after the release is safely stored
         run: uv publish dist/*.whl

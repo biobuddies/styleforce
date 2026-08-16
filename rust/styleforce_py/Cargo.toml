@@ -1,0 +1,24 @@
+[package]
+name = "styleforce_py"
+version = "0.0.3"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.23", features = ["abi3-py312"] }
+marzano-gritmodule = { path = "../../vendor/gritql/crates/gritmodule" }
+marzano-core = { path = "../../vendor/gritql/crates/core", default-features = false, features = ["non_wasm"] }
+marzano-language = { path = "../../vendor/gritql/crates/language" }
+marzano-util = { path = "../../vendor/gritql/crates/util", features = ["finder"] }
+grit-util = { path = "../../vendor/gritql/crates/grit-util" }
+anyhow = "1.0.70"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0.164", features = ["derive"] }
+serde_json = "1.0.96"
+# TODO: `log` is used in lib.rs for pattern resolution warnings. Verify the
+# gritmodule crate re-exports or depends on `log`; if not, add it explicitly.
+# The `env_logger` or similar init may be needed to actually emit warnings.
+log = "0.4"

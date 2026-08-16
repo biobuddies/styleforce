@@ -22,9 +22,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      # TODO: verify the vendored gritql submodules (tree-sitter grammars) are
+      # fetched with --depth 1 to keep checkout fast. The recursive checkout
+      # above should handle this, but confirm the .gitmodules shallow clone
+      # config is respected.
       - uses: astral-sh/setup-uv@v7
       - run: uv venv --python 3.12 --allow-existing
       - run: uv pip sync requirements.txt
+      # TODO: maturin must be available for `uv pip install .` to use the
+      # maturin build backend. Add it to requirements or install explicitly.
+      - run: uv pip install maturin
       - run: uv pip install .
       - run: .venv/bin/pytest -vv -s
 

@@ -1,4 +1,12 @@
-"""Build platform wheels containing the upstream GritQL CLI."""
+"""DEPRECATED: Old build backend that downloaded a prebuilt GritQL CLI binary.
+
+This file is kept for reference but is NO LONGER USED. The build backend is
+now `maturin` (see `pyproject.toml`), which compiles the Rust PyO3 extension
+in `rust/styleforce_py/` against the vendored GritQL source in
+`vendor/gritql/`.
+
+TODO: Remove this file once the maturin build is confirmed working in CI.
+"""
 
 from __future__ import annotations
 
@@ -21,7 +29,7 @@ from pathlib import Path
 NAME = 'styleforce'
 VERSION = '0.0.3'
 DIST_INFO = f'{NAME}-{VERSION}.dist-info'
-RELEASE_URL = 'https://github.com/getgrit/gritql/releases/download/v0.1.0-alpha.1743007075'
+RELEASE_URL = 'https://github.com/biomejs/gritql/releases/download/v0.1.0-alpha.1743007075'
 ARCHIVE_SHA256 = {
     'aarch64-apple-darwin': '7ab8c7eea90799ae35c86f2a9b7e48e56b91a62e6a459b910dde1a3daa066bf3',
     'x86_64-apple-darwin': 'b502f031cfe72b58e193282faf53531a5aac01c7bfa779421fc52652b652010e',
