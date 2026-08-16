@@ -362,7 +362,7 @@ fn try_format_and_recheck(
 }
 
 #[pymodule]
-fn styleforce_py(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn _native(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(test_patterns, m)?)?;
     // Expose the version for diagnostics.
     m.add("__version__", "0.0.3")?;
