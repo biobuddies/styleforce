@@ -19,7 +19,7 @@ from pathlib import Path
 
 
 NAME = 'styleforce'
-VERSION = '0.1.0'
+VERSION = '0.0.3'
 DIST_INFO = f'{NAME}-{VERSION}.dist-info'
 RELEASE_URL = 'https://github.com/getgrit/gritql/releases/download/v0.1.0-alpha.1743007075'
 ARCHIVE_SHA256 = {
@@ -62,14 +62,7 @@ def download_grit(destination: Path) -> str:
     unpacked = destination / 'unpacked'
     unpacked.mkdir()
     with tarfile.open(archive, 'r:gz') as bundle:
-        if sys.version_info >= (3, 12):
-            bundle.extractall(unpacked, filter='data')
-        else:
-            for member in bundle.getmembers():
-                resolved = (unpacked / member.name).resolve()
-                if unpacked.resolve() not in resolved.parents and resolved != unpacked.resolve():
-                    raise RuntimeError(f'unsafe archive member: {member.name}')
-            bundle.extractall(unpacked)
+        bundle.extractall(unpacked, filter='data')
 
     matches = list(unpacked.rglob('grit'))
     if len(matches) != 1:
@@ -85,7 +78,7 @@ def metadata() -> bytes:
         f'Name: {NAME}\n'
         f'Version: {VERSION}\n'
         'Summary: Shared GritQL rules for enforcing source-code style.\n'
-        'Requires-Python: >=3.15\n'
+        'Requires-Python: >=3.12\n'
     ).encode()
 
 

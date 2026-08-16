@@ -30,8 +30,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
-      - run: uv python install 3.15
-      - run: uv build --wheel --python 3.15 --out-dir dist
+      - run: uv python install 3.12
+      - run: uv build --wheel --python 3.12 --out-dir dist
       - uses: actions/upload-artifact@v4
         with:
           name: wheel-${{ matrix.os }}
