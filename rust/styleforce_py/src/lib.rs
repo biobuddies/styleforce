@@ -244,7 +244,7 @@ fn run_test_patterns(cwd: &str) -> Result<PyTestResult> {
                     // are `Some`. Verify `format_rich_files` is async and
                     // takes `(&PatternLanguage, Vec<RichFile>)`.
                     let result = if result.should_try_formatting() {
-                        try_format_and_recheck(&chosen_lang, &result).unwrap_or(result)
+                        try_format_and_recheck(&chosen_lang, &result).await.unwrap_or(result)
                     } else {
                         result
                     };
@@ -301,63 +301,59 @@ fn run_test_patterns(cwd: &str) -> Result<PyTestResult> {
 /// language's formatter (ruff for Python, gofmt for Go, etc.) on both the
 /// expected and actual output, then re-checks. We replicate that here.
 ///
+/// This is async because `format_rich_files` is async and we're already
+/// running inside the tokio runtime from `run_test_patterns`.
+///
 /// TODO: verify `format_rich_files` is `pub async fn` and takes
 /// `(&PatternLanguage, Vec<RichFile>)`. The `expected_outputs` and
 /// `actual_outputs` fields on `SampleTestResult` are `Option<Vec<RichFile>>`.
-fn try_format_and_recheck(
+async fn try_format_and_recheck(
     lang: &PatternLanguage,
     result: &marzano_gritmodule::testing::SampleTestResult,
 ) -> Option<marzano_gritmodule::testing::SampleTestResult> {
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .ok()?;
+    let expected = result.expected_outputs.clone()?;
+    let actual = result.actual_outputs.clone()?;
 
-    rt.block_on(async {
-        let expected = result.expected_outputs.clone()?;
-        let actual = result.actual_outputs.clone()?;
+    let formatted_expected = format_rich_files(lang, expected).await.ok()?;
+    let formatted_actual = format_rich_files(lang, actual).await.ok()?;
 
-        let formatted_expected = format_rich_files(lang, expected).await.ok()?;
-        let formatted_actual = format_rich_files(lang, actual).await.ok()?;
+    let mut exp = formatted_expected;
+    let mut act = formatted_actual;
+    let mismatch = has_output_mismatch(&mut exp, &mut act);
 
-        let mut exp = formatted_expected;
-        let mut act = formatted_actual;
-        let mismatch = has_output_mismatch(&mut exp, &mut act);
-
-        // TODO: verify `SampleTestResult::new_passing` takes
-        // `(Vec<MatchResult>, bool)` where the bool is `required_format`.
-        Some(match mismatch {
-            None => marzano_gritmodule::testing::SampleTestResult::new_passing(
-                result.matches.clone(),
-                true,
-            ),
-            Some(mismatch_info) => {
-                // TODO: verify `MismatchInfo` and `OutputInfo` are `pub` and
-                // that the fields `expected` and `actual` on `OutputInfo` are
-                // `pub String`.
-                use marzano_gritmodule::testing::{MismatchInfo, OutputInfo};
-                let (expected_out, actual_out) = match mismatch_info {
-                    MismatchInfo::Path(OutputInfo { expected, actual })
-                    | MismatchInfo::Content(OutputInfo { expected, actual }) => (expected, actual),
-                };
-                marzano_gritmodule::testing::SampleTestResult {
-                    // TODO: verify all fields are `pub` and that `matches`
-                    // is `Vec<MatchResult>`. The `expected_outputs` and
-                    // `actual_outputs` are set to `None` here since we've
-                    // already consumed them for formatting.
-                    matches: result.matches.clone(),
-                    state: GritTestResultState::FailedOutput,
-                    message: Some(
-                        "Actual output doesn't match expected output, even after formatting"
-                            .to_string(),
-                    ),
-                    expected_output: Some(expected_out),
-                    actual_output: Some(actual_out),
-                    expected_outputs: None,
-                    actual_outputs: None,
-                }
+    // TODO: verify `SampleTestResult::new_passing` takes
+    // `(Vec<MatchResult>, bool)` where the bool is `required_format`.
+    Some(match mismatch {
+        None => marzano_gritmodule::testing::SampleTestResult::new_passing(
+            result.matches.clone(),
+            true,
+        ),
+        Some(mismatch_info) => {
+            // TODO: verify `MismatchInfo` and `OutputInfo` are `pub` and
+            // that the fields `expected` and `actual` on `OutputInfo` are
+            // `pub String`.
+            use marzano_gritmodule::testing::{MismatchInfo, OutputInfo};
+            let (expected_out, actual_out) = match mismatch_info {
+                MismatchInfo::Path(OutputInfo { expected, actual })
+                | MismatchInfo::Content(OutputInfo { expected, actual }) => (expected, actual),
+            };
+            marzano_gritmodule::testing::SampleTestResult {
+                // TODO: verify all fields are `pub` and that `matches`
+                // is `Vec<MatchResult>`. The `expected_outputs` and
+                // `actual_outputs` are set to `None` here since we've
+                // already consumed them for formatting.
+                matches: result.matches.clone(),
+                state: GritTestResultState::FailedOutput,
+                message: Some(
+                    "Actual output doesn't match expected output, even after formatting"
+                        .to_string(),
+                ),
+                expected_output: Some(expected_out),
+                actual_output: Some(actual_out),
+                expected_outputs: None,
+                actual_outputs: None,
             }
-        })
+        }
     })
 }
 
