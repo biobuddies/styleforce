@@ -32,13 +32,12 @@ use std::path::PathBuf;
 
 use anyhow::{Context as _, Result};
 use marzano_core::pattern_compiler::src_to_problem_libs;
-use marzano_gritmodule::resolver::find_and_resolve_grit_dir;
+use marzano_gritmodule::resolver::{find_and_resolve_grit_dir, resolve_patterns};
 use marzano_gritmodule::searcher::find_grit_dir_from;
 use marzano_gritmodule::testing::{
     collect_testable_patterns, get_sample_name, has_output_mismatch, test_pattern_sample,
     GritTestResultState,
 };
-use marzano_gritmodule::config::resolve_patterns;
 use marzano_gritmodule::fetcher::ModuleRepo;
 use marzano_gritmodule::formatting::format_rich_files;
 use marzano_language::target_language::PatternLanguage;
@@ -92,23 +91,16 @@ fn state_name(state: &GritTestResultState) -> &'static str {
 /// This is the native equivalent of `grit patterns test --verbose`.
 #[pyfunction]
 fn test_patterns(py: Python, cwd: &str) -> PyResult<PyObject> {
-    let result = py.detach(|| run_test_patterns(cwd));
-    // TODO: verify `py.detach` is the correct pyo3 0.23 API. It may be
-    // `py.allow_threads(|| ...)` instead. The goal is to release the GIL
-    // while the Rust async runtime runs.
+    let result = py.allow_threads(|| run_test_patterns(cwd));
     let test_result = result.map_err(|e| {
         pyo3::exceptions::PyRuntimeError::new_err(format!("{e:#}"))
     })?;
     let json = serde_json::to_string(&test_result)
         .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
-    let module = PyModule::from_code(
-        py,
-        "import json\ndef _load(s): return json.loads(s)",
-        "_styleforce_json.py",
-        "_styleforce_json",
-    )?;
-    let obj: PyObject = module
-        .getattr("_load")?
+    // Use Python's built-in json module to parse the serialized result.
+    let json_mod = py.import_bound("json")?;
+    let obj: PyObject = json_mod
+        .getattr("loads")?
         .call1((json,))?
         .into();
     Ok(obj)
@@ -370,7 +362,7 @@ fn try_format_and_recheck(
 }
 
 #[pymodule]
-fn styleforce_py(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn styleforce_py(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(test_patterns, m)?)?;
     // Expose the version for diagnostics.
     m.add("__version__", "0.0.3")?;
