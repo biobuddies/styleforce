@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["rust/styleforce_py"]
+members = ["styleforce/rust"]
 # Exclude the vendored gritql so cargo resolves its crates against gritql's
 # own workspace root (vendor/gritql/Cargo.toml), not ours. Without this,
 # `version.workspace = true` inheritance in the gritql crates fails because

@@ -1,28 +1,18 @@
 from __future__ import annotations
 
 import json
-import shutil
-from pathlib import Path
 
 
-ROOT = Path(__file__).parents[1]
+def test_patterns() -> None:
+    """Run every pattern's Markdown samples through the native GritQL runner.
 
-
-def test_patterns(tmp_path: Path) -> None:
-    """Run every pattern's Markdown samples through the native GritQL test runner.
-
-    Instead of shelling out to a downloaded ``grit`` CLI binary, we call the
-    ``styleforce._native`` PyO3 extension (built from ``rust/styleforce_py``)
-    which compiles the GritQL crates directly and exposes a ``test_patterns``
-    function mirroring ``grit patterns test --verbose``.
+    The ``styleforce`` wheel bundles its ``.grit`` patterns as package data,
+    so ``styleforce.test_patterns()`` resolves them from the installed
+    location — no source-tree copy is needed.
     """
-    # TODO: once the wheel bundles the .grit patterns as package data, we can
-    # point at the installed location instead of copying from the source tree.
-    shutil.copytree(ROOT / '.grit', tmp_path / '.grit')
+    import styleforce  # noqa: PLC0415
 
-    import styleforce._native as native  # noqa: PLC0415
-
-    result = native.test_patterns(str(tmp_path))
+    result = styleforce.test_patterns()
 
     # The native function returns a dict with: passed, total_patterns,
     # total_samples, failed_samples, patterns[], summary.

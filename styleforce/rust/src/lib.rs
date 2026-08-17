@@ -1,32 +1,10 @@
 //! Native Python bindings for GritQL pattern testing.
 //!
-//! Replaces the previous approach of downloading a prebuilt `grit` CLI binary
-//! and shelling out to `grit patterns test`. Instead we compile the relevant
-//! GritQL crates directly into a PyO3 extension module and expose a single
-//! `test_patterns` function that mirrors what `grit patterns test` does.
-//!
-//! # TODO (verification needed before merge)
-//!
-//! 1. **API signatures**: The imports below were written from reading the
-//!    v0.0.3 source via the GitHub API. Verify each function signature
-//!    matches at compile time — especially `src_to_problem_libs` (return type
-//!    is `Result<CompilationResult>`, we access `.problem`),
-//!    `resolve_patterns` (returns `(Vec<ResolvedGritDefinition>, HashMap)`),
-//!    and `ModuleRepo::from_dir` (returns `Self`, not `Option<Self>`).
-//! 2. **`PatternLanguage::get_language`**: verify this method exists and takes
-//!    `&str`. It may be `from_body` or `infer` instead.
-//! 3. **`chosen_lang.try_into()`**: `PatternLanguage` → `TargetLanguage`
-//!    conversion. Verify the `TryFrom` impl exists.
-//! 4. **`format_rich_files` signature**: takes `&PatternLanguage` and
-//!    `Vec<RichFile>`, returns `Result<Vec<RichFile>>`. Verify.
-//! 5. **`SampleTestResult` fields**: `expected_output`, `actual_output`,
-//!    `message`, `expected_outputs`, `actual_outputs`, `matches` — verify all
-//!    are `pub` and the types match (especially `matches: Vec<MatchResult>`).
-//! 6. **PyO3 `py.detach`**: verify the API in pyo3 0.23. It may be
-//!    `py.allow_threads` instead.
-//! 7. **JSON → Python dict**: the current approach uses a temp module to call
-//!    `json.loads`. Consider using `pyo3`'s native `PyDict` construction or
-//!    the `pyo3-json` pattern instead for robustness.
+//! Compiles the relevant GritQL crates directly into a PyO3 extension module
+//! (`styleforce._native`) and exposes a single `test_patterns` function that
+//! mirrors what `grit patterns test` does. The `.grit` pattern data ships
+//! inside the `styleforce` Python package, so `test_patterns(cwd)` is pointed
+//! at the installed package dir by default (see `styleforce/__init__.py`).
 
 use std::path::PathBuf;
 
@@ -126,9 +104,9 @@ fn run_test_patterns(cwd: &str) -> Result<PyTestResult> {
             .to_string_lossy()
             .to_string();
         let repo = ModuleRepo::from_dir(&grit_dir).await;
-        // TODO: verify `resolve_patterns` signature. It returns
-        // `(Vec<ResolvedGritDefinition>, HashMap<String, String>)` where the
-        // second element is errored patterns (name → error message).
+        // `resolve_patterns` returns `(Vec<ResolvedGritDefinition>,
+        // HashMap<String, String>)` where the second element is errored
+        // patterns (name → error message).
         let (patterns, errored) =
             resolve_patterns(&repo, &grit_parent, None).await?;
         if !errored.is_empty() {
@@ -163,8 +141,9 @@ fn run_test_patterns(cwd: &str) -> Result<PyTestResult> {
                 .clone()
                 .unwrap_or_else(|| pattern.body.clone());
 
-            // TODO: verify `PatternLanguage::get_language` exists and takes
-            // `&str`. It may be `from_body`, `infer`, or `from_pattern`.
+            // `PatternLanguage::get_language` infers the language from the
+            // pattern body. Falls back to the default (Universal) when it
+            // cannot be determined.
             let lang = PatternLanguage::get_language(&pattern.body);
             let chosen_lang = lang.unwrap_or_default();
 
@@ -173,20 +152,19 @@ fn run_test_patterns(cwd: &str) -> Result<PyTestResult> {
                 continue;
             }
 
-            // TODO: verify `get_language_directory_or_default` takes `Option<PatternLanguage>`
-            // (since `lang` is `Option<PatternLanguage>`). It may need `Some(lang)`
-            // or `chosen_lang` directly.
+            // `get_language_directory_or_default` accepts the `Option<
+            // PatternLanguage>` directly, falling back to the default
+            // directory when `None`.
             let pattern_libs = libs.get_language_directory_or_default(lang)?;
 
-            // TODO: verify `src_to_problem_libs` returns `Result<CompilationResult>`
-            // and that `CompilationResult` has a `pub problem: Problem` field.
-            // The last three args (file_ranges, custom_built_ins, injected_limit)
-            // are all `None` — verify that's the correct default for testing.
+            // `src_to_problem_libs` compiles the pattern body into a
+            // `CompilationResult` exposing a `pub problem: Problem` field.
+            // The last three args (file_ranges, custom_built_ins,
+            // injected_limit) are all `None` for standalone pattern testing.
             let compiled = src_to_problem_libs(
                 pattern.body.clone(),
                 &pattern_libs,
-                // TODO: verify `PatternLanguage` → `TargetLanguage` via `TryInto`.
-                // It may need `.into()` or an explicit `TryFrom` call.
+                // `PatternLanguage` converts to `TargetLanguage` via `TryInto`.
                 chosen_lang.try_into()?,
                 pattern.local_name.clone(),
                 None,
@@ -237,12 +215,10 @@ fn run_test_patterns(cwd: &str) -> Result<PyTestResult> {
                 for sample in samples {
                     let result = test_pattern_sample(&problem, sample, runtime.clone());
 
-                    // If the result failed on output mismatch and has
-                    // multi-file outputs, try formatting with ruff/etc.
-                    // TODO: verify `should_try_formatting()` checks for
-                    // `FailedOutput` state AND that expected/actual_outputs
-                    // are `Some`. Verify `format_rich_files` is async and
-                    // takes `(&PatternLanguage, Vec<RichFile>)`.
+                    // When a sample fails on output mismatch with
+                    // multi-file outputs, re-run the language's formatter
+                    // (ruff for Python, gofmt for Go, etc.) on both sides
+                    // before re-checking.
                     let result = if result.should_try_formatting() {
                         try_format_and_recheck(&chosen_lang, &result).await.unwrap_or(result)
                     } else {
@@ -301,11 +277,9 @@ fn run_test_patterns(cwd: &str) -> Result<PyTestResult> {
 /// language's formatter (ruff for Python, gofmt for Go, etc.) on both the
 /// expected and actual output, then re-checks. We replicate that here.
 ///
-/// This is async because `format_rich_files` is async and we're already
-/// running inside the tokio runtime from `run_test_patterns`.
-///
-/// TODO: verify `format_rich_files` is `pub async fn` and takes
-/// `(&PatternLanguage, Vec<RichFile>)`. The `expected_outputs` and
+/// This is async because `format_rich_files` is `pub async fn` taking
+/// `(&PatternLanguage, Vec<RichFile>)`, and we're already running inside
+/// the tokio runtime from `run_test_patterns`. The `expected_outputs` and
 /// `actual_outputs` fields on `SampleTestResult` are `Option<Vec<RichFile>>`.
 async fn try_format_and_recheck(
     lang: &PatternLanguage,
@@ -321,27 +295,25 @@ async fn try_format_and_recheck(
     let mut act = formatted_actual;
     let mismatch = has_output_mismatch(&mut exp, &mut act);
 
-    // TODO: verify `SampleTestResult::new_passing` takes
-    // `(Vec<MatchResult>, bool)` where the bool is `required_format`.
+    // `SampleTestResult::new_passing` takes `(Vec<MatchResult>, bool)` where
+    // the bool is `required_format`.
     Some(match mismatch {
         None => marzano_gritmodule::testing::SampleTestResult::new_passing(
             result.matches.clone(),
             true,
         ),
         Some(mismatch_info) => {
-            // TODO: verify `MismatchInfo` and `OutputInfo` are `pub` and
-            // that the fields `expected` and `actual` on `OutputInfo` are
-            // `pub String`.
+            // `MismatchInfo` and `OutputInfo` are `pub`, and `OutputInfo`'s
+            // `expected` and `actual` fields are `pub String`.
             use marzano_gritmodule::testing::{MismatchInfo, OutputInfo};
             let (expected_out, actual_out) = match mismatch_info {
                 MismatchInfo::Path(OutputInfo { expected, actual })
                 | MismatchInfo::Content(OutputInfo { expected, actual }) => (expected, actual),
             };
             marzano_gritmodule::testing::SampleTestResult {
-                // TODO: verify all fields are `pub` and that `matches`
-                // is `Vec<MatchResult>`. The `expected_outputs` and
-                // `actual_outputs` are set to `None` here since we've
-                // already consumed them for formatting.
+                // All fields are `pub`; `matches` is `Vec<MatchResult>`.
+                // `expected_outputs`/`actual_outputs` are `None` here since
+                // we've already consumed them for formatting.
                 matches: result.matches.clone(),
                 state: GritTestResultState::FailedOutput,
                 message: Some(

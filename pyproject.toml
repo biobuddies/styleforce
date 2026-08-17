@@ -15,14 +15,15 @@ test = [
 ]
 
 [tool.maturin]
-# The Rust crate that produces the native `styleforce_py` extension module.
-# Must point at the crate's Cargo.toml (with [package]), not the workspace root.
-manifest-path = 'rust/styleforce_py/Cargo.toml'
+# The Rust crate that produces the native `styleforce._native` extension.
+manifest-path = 'styleforce/rust/Cargo.toml'
+# The Python package lives at ./styleforce/ (alongside the rust/ subdir).
+# Maturin treats styleforce/ as the package root and bundles every file in it
+# — including the .grit/ pattern data — into the wheel.
+python-source = '.'
+module-name = 'styleforce._native'
+# Exclude the Rust source from the wheel: only the compiled _native extension
+# and the .grit pattern data should ship. (rust/ is needed at build time only.)
+exclude = ['styleforce/rust/**']
 # We build an abi3-py312 wheel, so the resulting artifact is
 # `styleforce-0.0.3-cp312-abi3-<platform>.whl` and works on any Python >= 3.12.
-# TODO: verify maturin picks up the correct platform tag for each CI runner.
-python-source = 'python'
-module-name = 'styleforce._native'
-# TODO: confirm the data files (.grit patterns) are included in the wheel.
-# Maturin supports `[tool.maturin.data]` or a `python/styleforce/` package dir;
-# we may need to add the .grit patterns as package data or a separate step.

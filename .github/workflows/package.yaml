@@ -32,17 +32,14 @@ jobs:
         with:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
-      # TODO: cross-compilation for aarch64-linux may need a cross toolchain
-      # (e.g. `cargo-zigbuild` or `cross`). The ubuntu-24.04-arm runner is
-      # native aarch64, so it builds natively; verify the other two legs are
-      # also native (macos-14 = arm64, ubuntu-latest = x86_64). If any leg
-      # needs cross-compilation, add the appropriate toolchain here.
+      # All three matrix legs build natively (macos-14 = arm64,
+      # ubuntu-latest = x86_64, ubuntu-24.04-arm = aarch64), so no
+      # cross-compilation toolchain is needed.
       - uses: astral-sh/setup-uv@v7
       - run: uv python install 3.12
-      # TODO: maturin builds the abi3-py312 wheel from the Rust workspace.
-      # Verify `uv build --wheel` invokes maturin correctly via the
-      # [build-system] config in pyproject.toml.
-      - run: uv pip install maturin
+      # maturin is declared in pyproject.toml [build-system].requires, so
+      # `uv build --wheel` invokes it automatically to produce the abi3-py312
+      # wheel from the Rust crate.
       - run: uv build --wheel --python 3.12 --out-dir dist
       - uses: actions/upload-artifact@v4
         with:
