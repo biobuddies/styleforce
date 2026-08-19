@@ -1,0 +1,38 @@
+name: act
+
+on: # yamllint disable-line rule:truthy
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GRIT_TELEMETRY_DISABLED: true
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -o errexit -o nounset -o pipefail -o xtrace {0}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: astral-sh/setup-uv@v7
+      - run: uv venv --python 3.12 --allow-existing
+      - run: uv pip sync requirements.txt
+      # maturin is declared in pyproject.toml [build-system].requires, so
+      # `uv pip install .` fetches it automatically to build the native ext.
+      - run: uv pip install .
+      # Restrict pytest to our tests/ dir so it doesn't try to collect tests
+      # from the vendored gritql submodule (vendor/gritql/python/tests/ etc).
+      - run: .venv/bin/pytest tests/ -vv -s
+
+run-name: Testing on behalf of ${{ github.actor }}

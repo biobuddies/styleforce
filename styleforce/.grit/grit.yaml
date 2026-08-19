@@ -1,0 +1,6 @@
+version: 0.0.1
+patterns:
+  - name: inline_single_use_assignment
+    path: .grit/patterns/inline_single_use_assignment.md
+  - name: inner_function_naming
+    path: .grit/patterns/inner_function_naming.md

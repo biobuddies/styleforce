@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = ["styleforce/rust"]
+# Exclude the vendored gritql so cargo resolves its crates against gritql's
+# own workspace root (vendor/gritql/Cargo.toml), not ours. Without this,
+# `version.workspace = true` inheritance in the gritql crates fails because
+# our workspace root doesn't define `workspace.package.version`.
+exclude = ["vendor/gritql"]
