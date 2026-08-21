@@ -12,8 +12,6 @@ from pathlib import Path
 
 __all__ = ['test_patterns']
 
-# Directory of this __init__.py — the installed package root. The bundled
-# .grit/ patterns live alongside it.
 _PACKAGE_DIR = Path(__file__).resolve().parent
 
 
