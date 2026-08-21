@@ -24,14 +24,16 @@ function_definition(body=$body) as $outer where {
 ```python
 def make_handler():
     def handler(event):
-        return {"status": "ok", "event": event}
+        return {'status': 'ok', 'event': event}
+
     return handler
 ```
 
 ```python
 def make_handler():
     def inner(event):
-        return {"status": "ok", "event": event}
+        return {'status': 'ok', 'event': event}
+
     return inner
 ```
 
@@ -40,7 +42,8 @@ def make_handler():
 ```python
 def make_handler():
     def inner(event):
-        return {"status": "ok", "event": event}
+        return {'status': 'ok', 'event': event}
+
     return inner
 ```
 
@@ -50,8 +53,10 @@ def make_handler():
 def make_handlers():
     def get():
         pass
+
     def post():
         pass
+
     return get, post
 ```
 
@@ -60,6 +65,7 @@ def make_handlers():
 ```python
 def make_handler():
     def handler(event):
-        return {"status": "ok", "event": event}
+        return {'status': 'ok', 'event': event}
+
     return lambda event: handler(event)
 ```
