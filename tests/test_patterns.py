@@ -1,6 +1,6 @@
-from __future__ import annotations
+"""Test bundled GritQL patterns."""
 
-import json
+from __future__ import annotations
 
 
 def test_patterns() -> None:
@@ -13,10 +13,5 @@ def test_patterns() -> None:
     import styleforce  # noqa: PLC0415
 
     result = styleforce.test_patterns()
-
-    # The native function returns a dict with: passed, total_patterns,
-    # total_samples, failed_samples, patterns[], summary.
-    print('GritQL native test results')
-    print(json.dumps(result, indent=2))
 
     assert result['passed'], result.get('summary', 'pattern tests failed')
