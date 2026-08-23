@@ -36,7 +36,6 @@ print(T8M_90964_c23CT)
 ```
 
 ```python
-
 print(('A01', 'B02'))  # wells
 
 print('GGCCGAAGGAGACGCTGCAGT')  # T8M_90964_c23CT
