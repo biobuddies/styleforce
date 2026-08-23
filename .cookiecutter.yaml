@@ -1,0 +1,4 @@
+default_context:
+    description: Shared GritQL rules for enforcing source-code style.
+    languages: Node,Python,Rust
+    python_dependencies: []
