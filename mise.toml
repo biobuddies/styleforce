@@ -1,6 +1,3 @@
-[tools]
-uv = "latest"
-
 [tasks.build]
 run = 'uv build --wheel --python 3.12 --out-dir dist'
 

@@ -4,7 +4,7 @@ build-backend = 'maturin'
 
 [project]
 name = 'styleforce'
-description = 'Shared GritQL rules for enforcing source-code style.'
+description = 'Autoformat the Rule of Three and more'
 requires-python = '>=3.12'
 version = '0.0.3'
 dependencies = []
