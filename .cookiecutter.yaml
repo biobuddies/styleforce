@@ -1,0 +1,4 @@
+default_context:
+    description: Autoformat the Rule of Three and more
+    languages: Node,Python,Rust
+    python_dependencies: []

@@ -1,0 +1,11 @@
+[tasks.build]
+run = 'uv build --wheel --python 3.12 --out-dir dist'
+
+[tasks.test]
+run = '''
+#!/usr/bin/env bash
+set -o errexit -o nounset -o pipefail
+uv pip install .
+python -m pytest --cov${PYTEST_COV-} \
+    --cov-report=term-missing:skip-covered --verbose "$@"
+'''

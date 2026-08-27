@@ -1,0 +1,3 @@
+__version__: str
+
+def test_patterns(cwd: str) -> dict: ...

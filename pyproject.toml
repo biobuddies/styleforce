@@ -4,14 +4,46 @@ build-backend = 'maturin'
 
 [project]
 name = 'styleforce'
-version = '0.0.3'
-description = 'Shared GritQL rules for enforcing source-code style.'
+description = 'Autoformat the Rule of Three and more'
 requires-python = '>=3.12'
+version = '0.0.3'
 dependencies = []
 
-[dependency-groups]
+[project.optional-dependencies]
+pre-commit = [
+    'actionlint-py',
+    'basedpyright',
+    'cookiecutter',
+    'django-upgrade',
+    'djlint',
+    'hadolint-py @ git+https://github.com/AleksaC/hadolint-py.git',
+    'pre-commit-hooks',
+    'pyrefly',
+    'ruff',
+    'shellcheck-py',
+    'shfmt-py',
+    'typos',
+    'validate-pyproject[all]',
+    'yamllint',
+]
 test = [
-  'pytest>=8',
+    'pytest',
+    'pytest-cov',
+]
+
+[tool.pytest.ini_options]
+norecursedirs = ['.venv', 'node_modules', 'vendor', '{{cookiecutter.dot}}']
+
+[tool.basedpyright]
+extends = '.biobuddies/basedpyright.toml'
+
+[tool.ruff]
+extend = '.biobuddies/ruff.toml'
+
+[tool.pyrefly]
+project-includes = [
+    '**/*.py*',
+    '**/*.ipynb',
 ]
 
 [tool.maturin]
