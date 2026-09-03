@@ -19,25 +19,15 @@ defaults:
 
 jobs:
     build:
-        strategy:
-            fail-fast: false
-            matrix:
-                os:
-                    - macos-14
-                    - ubuntu-latest
-                    - ubuntu-24.04-arm
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v7
-              with:
-                  submodules: recursive
-            - uses: dtolnay/rust-toolchain@stable
             - uses: astral-sh/setup-uv@v7
             - run: uv python install 3.12
             - run: uv build --wheel --python 3.12 --out-dir dist
             - uses: actions/upload-artifact@v4
               with:
-                  name: wheel-${{ matrix.os }}
+                  name: wheel
                   path: dist/*.whl
 
     release:
@@ -50,7 +40,7 @@ jobs:
         steps:
             - uses: actions/download-artifact@v4
               with:
-                  merge-multiple: true
+                  name: wheel
                   path: dist
             - env:
                   GH_TOKEN: ${{ github.token }}
@@ -59,7 +49,7 @@ jobs:
                   --repo ${{ github.repository }}
                   --target ${{ github.sha }}
                   --title v${{ github.run_id }}
-                  --notes 'GritQL native wheels built from ${{ github.sha }}'
+                  --notes 'Pure-Python wheel built from ${{ github.sha }}'
             - uses: astral-sh/setup-uv@v7
             - continue-on-error: true
               run: uv publish dist/*.whl

@@ -1,13 +1,13 @@
 [build-system]
-requires = ['maturin>=1.7,<2.0']
-build-backend = 'maturin'
+requires = ['hatchling']
+build-backend = 'hatchling.build'
 
 [project]
 name = 'styleforce'
 description = 'Autoformat the Rule of Three and more'
 requires-python = '>=3.12'
 version = '0.0.3'
-dependencies = ['ruff']
+dependencies = []
 
 [project.optional-dependencies]
 pre-commit = [
@@ -29,6 +29,7 @@ pre-commit = [
 test = [
     'pytest',
     'pytest-cov',
+    'ruff',
 ]
 
 [tool.pytest.ini_options]
@@ -46,8 +47,8 @@ project-includes = [
     '**/*.ipynb',
 ]
 
-[tool.maturin]
-manifest-path = 'styleforce/rust/Cargo.toml'
-python-source = '.'
-module-name = 'styleforce._native'
-exclude = ['styleforce/rust/**']
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ['styleforce']

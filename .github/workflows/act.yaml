@@ -19,9 +19,6 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v7
-              with:
-                  submodules: recursive
-            - uses: dtolnay/rust-toolchain@stable
             - uses: jdx/mise-action@v3
               with:
                   experimental: true
