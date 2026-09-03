@@ -1,0 +1,3 @@
+__version__: str
+
+def apply(pattern: str, source: str, filename: str) -> str: ...

@@ -1,61 +1,49 @@
-"""Turn each GritQL Markdown sample into its own pytest case, judged by the grit CLI.
+"""Auto-generate one pytest case per GritQL Markdown sample, run by the wheel.
 
-Every ``styleforce/.grit/patterns/*.md`` pairs a pattern with ``## `` sample
-sections: two fenced blocks for a before/after rewrite, one for an input that
-must stay unchanged. The upstream ``grit patterns test`` runner already does
-the matching and language formatting, so here pytest only reads the sections to
-name a case apiece and asserts that section's verdict -- no bundled Rust tester.
+Every ``styleforce/.grit/patterns/*.md`` pairs a ```grit`` pattern body with
+``## `` sample sections: two fenced blocks for a before/after rewrite, one for
+an input that must stay unchanged. This reads those sections and parametrizes a
+``(pattern, before, after)`` case apiece; :mod:`tests.test_patterns` applies
+each through the bundled native engine (``styleforce.apply``).
 """
 
 from __future__ import annotations
 
-from functools import cache
-from json import loads
 from pathlib import Path
-from subprocess import PIPE, STDOUT, run
+from typing import TYPE_CHECKING
 
-from pytest import Metafunc, fixture
+if TYPE_CHECKING:
+    from pytest import Metafunc
 
-_GRIT_ROOT = Path(__file__).resolve().parent.parent / 'styleforce'
-_PATTERNS = _GRIT_ROOT / '.grit' / 'patterns'
+_PATTERNS = Path(__file__).resolve().parent.parent / 'styleforce' / '.grit' / 'patterns'
 
 
-def _sample_titles(markdown: str) -> list[str]:
-    titles = []
-    fenced = False
+def _parse(markdown: str) -> list[tuple[str, tuple[str, str, str]]]:
+    pattern, title, language, buffer, fences, sections = '', None, None, [], [], []
     for line in markdown.splitlines():
-        if line.startswith('```'):
-            fenced = not fenced
-        elif not fenced and line.startswith('## '):
-            titles.append(line[3:].strip())
-    return titles
-
-
-@cache
-def _sample_states(pattern: str) -> tuple[str, ...]:
-    completed = run(
-        ['grit', 'patterns', 'test', '--filter', f'^{pattern}$', '--json'],
-        check=False,
-        cwd=_GRIT_ROOT,
-        stderr=STDOUT,
-        stdout=PIPE,
-        text=True,
-    )
-    results = loads(completed.stdout[completed.stdout.index('[') :])
-    return tuple(sample['state'] for sample in results[0]['samples'])
+        if language is None and line.startswith('```'):
+            language, buffer = line[3:].strip(), []
+        elif language is not None and line.startswith('```'):
+            code = '\n'.join(buffer) + '\n'
+            if language == 'grit':
+                pattern = code
+            elif title is not None:
+                fences.append(code)
+            language = None
+        elif language is not None:
+            buffer.append(line)
+        elif line.startswith('## '):
+            title, fences = line[3:].strip(), []
+            sections.append((title, fences))
+    return [(title, (pattern, blocks[0], blocks[-1])) for title, blocks in sections if blocks]
 
 
 def pytest_generate_tests(metafunc: Metafunc) -> None:
     if 'sample' not in metafunc.fixturenames:
         return
     arguments, identifiers = [], []
-    for pattern in sorted(_PATTERNS.glob('*.md')):
-        for index, title in enumerate(_sample_titles(pattern.read_text())):
-            arguments.append((pattern.stem, index))
-            identifiers.append(f'{pattern.stem}::{title}')
+    for markdown in sorted(_PATTERNS.glob('*.md')):
+        for title, sample in _parse(markdown.read_text()):
+            arguments.append(sample)
+            identifiers.append(f'{markdown.stem}::{title}')
     metafunc.parametrize('sample', arguments, ids=identifiers)
-
-
-@fixture
-def sample_state(sample: tuple[str, int]) -> str:
-    return _sample_states(sample[0])[sample[1]]

@@ -6,6 +6,8 @@ run = '''
 #!/usr/bin/env bash
 set -o errexit -o nounset -o pipefail
 uv pip install .
-python -m pytest --cov${PYTEST_COV-} \
+# `pytest`, not `python -m pytest`: the latter puts the repo root on sys.path, so the
+# uncompiled source `styleforce` shadows the installed wheel's `styleforce._native`.
+pytest --cov${PYTEST_COV-} \
     --cov-report=term-missing:skip-covered --verbose "$@"
 '''
