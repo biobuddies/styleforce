@@ -1,17 +1,17 @@
-"""Test bundled GritQL patterns."""
+"""Apply each GritQL Markdown sample through the bundled native engine."""
 
 from __future__ import annotations
 
+from subprocess import PIPE, run
 
-def test_patterns() -> None:
-    """Run every pattern's Markdown samples through the native GritQL runner.
+import styleforce
 
-    The ``styleforce`` wheel bundles its ``.grit`` patterns as package data,
-    so ``styleforce.test_patterns()`` resolves them from the installed
-    location — no source-tree copy is needed.
-    """
-    import styleforce  # noqa: PLC0415
 
-    result = styleforce.test_patterns()
+def _ruff(source: str) -> str:
+    return run(['ruff', 'format', '-'], check=True, input=source, stdout=PIPE, text=True).stdout
 
-    assert result['passed'], result.get('summary', 'pattern tests failed')
+
+def test_sample(sample: tuple[str, str, str]) -> None:
+    pattern, before, after = sample
+    actual = styleforce.apply(pattern, before)
+    assert _ruff(actual) == _ruff(after), actual

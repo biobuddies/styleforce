@@ -1,28 +1,24 @@
-"""styleforce — shared GritQL rules for enforcing source-code style.
+"""styleforce -- shared GritQL rules for enforcing source-code style.
 
-The native pattern-testing engine lives in ``styleforce._native``, a PyO3
-extension built from ``styleforce/rust``. The ``.grit`` pattern data files
-ship inside this package so the wheel is usable out-of-the-box with no
-checkout of the source tree required.
+The ``.grit`` patterns and a native GritQL engine (``styleforce._native``, a
+PyO3 build of the vendored marzano crates) ship inside this package, so the
+wheel applies patterns out of the box. :func:`apply` rewrites one snippet by a
+pattern; the repository's pytest suite drives it over each pattern's Markdown
+samples.
 """
 
 from __future__ import annotations
 
-from pathlib import Path
-
-__all__ = ['test_patterns']
-
-_PACKAGE_DIR = Path(__file__).resolve().parent
+__all__ = ['apply']
 
 
-def test_patterns(cwd: str | None = None) -> dict:  # noqa: PT028
-    """Run every pattern's Markdown samples through the native GritQL runner.
+def apply(pattern: str, source: str, filename: str = 'snippet.py') -> str:
+    """Rewrite *source* by the GritQL *pattern* body, returning the new source.
 
-    By default the patterns bundled in this package (``styleforce/.grit``)
-    are tested. Pass *cwd* to point at a different working directory whose
-    ``.grit`` tree should be used instead.
+    *source* is returned unchanged when the pattern matches nothing. *filename*
+    names the snippet for the engine; the pattern's own ``language`` line, not
+    the extension, selects the grammar.
     """
     import styleforce._native as native  # noqa: PLC0415
 
-    target = cwd if cwd is not None else str(_PACKAGE_DIR)
-    return native.test_patterns(target)
+    return native.apply(pattern, source, filename)
