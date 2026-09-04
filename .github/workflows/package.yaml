@@ -29,8 +29,11 @@ jobs:
         runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v7
-              with:
-                  submodules: recursive
+            - run: |
+                  git submodule update --init vendor/gritql
+                  git -C vendor/gritql submodule update --init \
+                      vendor/tree-sitter-facade vendor/tree-sitter-gritql vendor/web-tree-sitter
+                  git -C vendor/gritql apply ../../patches/gritql-python-only.patch
             - uses: dtolnay/rust-toolchain@stable
             - uses: astral-sh/setup-uv@v7
             - run: uv python install 3.12

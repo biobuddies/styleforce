@@ -1,0 +1,59 @@
+diff --git a/crates/language/src/grit_ts_node.rs b/crates/language/src/grit_ts_node.rs
+index 21341db..9744bab 100644
+--- a/crates/language/src/grit_ts_node.rs
++++ b/crates/language/src/grit_ts_node.rs
+@@ -24,13 +24,13 @@ pub fn grit_node_types() -> GritNodeTypes<'static> {
+     }
+ }
+ 
+-#[cfg(not(feature = "builtin-parser"))]
++#[cfg(not(feature = "tree-sitter-gritql"))]
+ fn language() -> TSLanguage {
+     unimplemented!(
+         "tree-sitter parser must be initialized before use when [builtin-parser] is off."
+     )
+ }
+-#[cfg(feature = "builtin-parser")]
++#[cfg(feature = "tree-sitter-gritql")]
+ fn language() -> TSLanguage {
+     tree_sitter_gritql::language().into()
+ }
+diff --git a/crates/language/src/python.rs b/crates/language/src/python.rs
+index 2b777fa..5fb750e 100644
+--- a/crates/language/src/python.rs
++++ b/crates/language/src/python.rs
+@@ -11,13 +11,13 @@ static NODE_TYPES_STRING: &str =
+ static NODE_TYPES: OnceLock<Vec<Vec<Field>>> = OnceLock::new();
+ static LANGUAGE: OnceLock<TSLanguage> = OnceLock::new();
+ 
+-#[cfg(not(feature = "builtin-parser"))]
++#[cfg(not(feature = "tree-sitter-python"))]
+ fn language() -> TSLanguage {
+     unimplemented!(
+         "tree-sitter parser must be initialized before use when [builtin-parser] is off."
+     )
+ }
+-#[cfg(feature = "builtin-parser")]
++#[cfg(feature = "tree-sitter-python")]
+ fn language() -> TSLanguage {
+     tree_sitter_python::language().into()
+ }
+diff --git a/crates/language/src/target_language.rs b/crates/language/src/target_language.rs
+index 3c6767d..0e18871 100644
+--- a/crates/language/src/target_language.rs
++++ b/crates/language/src/target_language.rs
+@@ -199,12 +199,12 @@ impl PatternLanguage {
+         None
+     }
+ 
+-    #[cfg(not(feature = "builtin-parser"))]
++    #[cfg(not(feature = "grit-parser"))]
+     pub fn get_language_with_parser(_parser: &mut MarzanoGritParser, _body: &str) -> Option<Self> {
+         unimplemented!("grit_parser is unavailable when feature flag [builtin-parser] is off.")
+     }
+ 
+-    #[cfg(feature = "builtin-parser")]
++    #[cfg(feature = "grit-parser")]
+     pub fn get_language_with_parser(parser: &mut MarzanoGritParser, body: &str) -> Option<Self> {
+         let tree = parser.parse_file(body, None);
+         tree.ok().and_then(|tree| Self::from_tree(&tree))

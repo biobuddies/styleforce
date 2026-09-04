@@ -12,6 +12,10 @@ pyo3 = { version = "0.23", features = ["abi3-py312", "extension-module"] }
 marzano-core = { path = "../../vendor/gritql/crates/core", default-features = false, features = [
     "non_wasm",
 ] }
-marzano-language = { path = "../../vendor/gritql/crates/language" }
+marzano-language = { path = "../../vendor/gritql/crates/language", default-features = false, features = [
+    "grit-parser",
+    "tree-sitter-gritql",
+    "tree-sitter-python",
+] }
 marzano-util = { path = "../../vendor/gritql/crates/util" }
 anyhow = "1.0.70"
