@@ -5,7 +5,7 @@ index 21341db..9744bab 100644
 @@ -24,13 +24,13 @@ pub fn grit_node_types() -> GritNodeTypes<'static> {
      }
  }
- 
+
 -#[cfg(not(feature = "builtin-parser"))]
 +#[cfg(not(feature = "tree-sitter-gritql"))]
  fn language() -> TSLanguage {
@@ -25,7 +25,7 @@ index 2b777fa..5fb750e 100644
 @@ -11,13 +11,13 @@ static NODE_TYPES_STRING: &str =
  static NODE_TYPES: OnceLock<Vec<Vec<Field>>> = OnceLock::new();
  static LANGUAGE: OnceLock<TSLanguage> = OnceLock::new();
- 
+
 -#[cfg(not(feature = "builtin-parser"))]
 +#[cfg(not(feature = "tree-sitter-python"))]
  fn language() -> TSLanguage {
@@ -45,13 +45,13 @@ index 3c6767d..0e18871 100644
 @@ -199,12 +199,12 @@ impl PatternLanguage {
          None
      }
- 
+
 -    #[cfg(not(feature = "builtin-parser"))]
 +    #[cfg(not(feature = "grit-parser"))]
      pub fn get_language_with_parser(_parser: &mut MarzanoGritParser, _body: &str) -> Option<Self> {
          unimplemented!("grit_parser is unavailable when feature flag [builtin-parser] is off.")
      }
- 
+
 -    #[cfg(feature = "builtin-parser")]
 +    #[cfg(feature = "grit-parser")]
      pub fn get_language_with_parser(parser: &mut MarzanoGritParser, body: &str) -> Option<Self> {

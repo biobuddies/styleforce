@@ -12,10 +12,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import styleforce
+
 if TYPE_CHECKING:
     from pytest import Metafunc
 
-_PATTERNS = Path(__file__).resolve().parent.parent / 'styleforce' / '.grit' / 'patterns'
+_PATTERNS = Path(styleforce.__file__).parent / '.grit' / 'patterns'
 
 
 def _parse(markdown: str) -> list[tuple[str, tuple[str, str, str]]]:

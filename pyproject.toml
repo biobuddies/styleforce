@@ -5,8 +5,9 @@ build-backend = 'maturin'
 [project]
 name = 'styleforce'
 description = 'Autoformat the Rule of Three and more'
+dynamic = ['version']
+readme = { text = 'Autoformat the Rule of Three and more', content-type = 'text/markdown' }
 requires-python = '>=3.12'
-version = '0.0.3'
 dependencies = ['ruff']
 
 [project.optional-dependencies]
