@@ -241,7 +241,7 @@ FQDN=$(mise fqdn)
 GIHA=$(mise giha)
 ORGN=BioBuddies
 ROLE=${ROLE-}
-TABR=$(mise tabr)
+TABR=${TABR:-$(mise tabr)}
 EOD
 set -o allexport
 # shellcheck disable=SC1090
