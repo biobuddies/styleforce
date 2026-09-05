@@ -1,6 +1,6 @@
 """Auto-generate one pytest case per GritQL Markdown sample, run by the wheel.
 
-Every ``styleforce/.grit/patterns/*.md`` pairs a ```grit`` pattern body with
+Every ``styleforce/.grit/patterns/**/*.md`` pairs a ```grit`` pattern body with
 ``## `` sample sections: two fenced blocks for a before/after rewrite, one for
 an input that must stay unchanged. This reads those sections and parametrizes a
 ``(pattern, before, after)`` case apiece; :mod:`tests.test_patterns` applies
@@ -44,8 +44,8 @@ def pytest_generate_tests(metafunc: Metafunc) -> None:
     if 'sample' not in metafunc.fixturenames:
         return
     arguments, identifiers = [], []
-    for markdown in sorted(_PATTERNS.glob('*.md')):
+    for markdown in sorted(_PATTERNS.rglob('*.md')):
         for title, sample in _parse(markdown.read_text()):
             arguments.append(sample)
-            identifiers.append(f'{markdown.stem}::{title}')
+            identifiers.append(f'{markdown.relative_to(_PATTERNS).with_suffix("")}::{title}')
     metafunc.parametrize('sample', arguments, ids=identifiers)
