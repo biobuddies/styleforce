@@ -7,7 +7,7 @@ Covered today:
 * `assignment-read-once` -- inline an assignment read exactly once.
 * `function-called-once` -- inline a single-use function whose body runs straight through to one
   trailing `return`, called as `target = name(arg)`, with positional parameters.
-* `inner_function_naming` -- unrelated here.
+* `standard-identifiers/*` -- unrelated here.
 
 ## Inline a timezone-offset helper that has only one caller
 

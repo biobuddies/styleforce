@@ -2,5 +2,13 @@ version: 0.0.1
 patterns:
     - name: inline_single_use_assignment
       path: .grit/patterns/inline_single_use_assignment.md
-    - name: inner_function_naming
-      path: .grit/patterns/inner_function_naming.md
+    - name: cls-parameter
+      path: .grit/patterns/standard-identifiers/cls-parameter.md
+    - name: inner-function
+      path: .grit/patterns/standard-identifiers/inner-function.md
+    - name: self-parameter
+      path: .grit/patterns/standard-identifiers/self-parameter.md
+    - name: star-args
+      path: .grit/patterns/standard-identifiers/star-args.md
+    - name: star-star-kwargs
+      path: .grit/patterns/standard-identifiers/star-star-kwargs.md
