@@ -28,7 +28,86 @@ jobs:
             - uses: jdx/mise-action@v3
               with:
                   experimental: true
-            - run: uv pip install .
-            - run: .venv/bin/pytest tests/ -vv -s
+            - run: mise set-environment
+            - run: mise build
+            - run: mise twine-check
+            - run: mise test
 
-run-name: Testing on behalf of ${{ github.actor }}
+    release:
+        if: github.event_name == 'push'
+        needs: test
+        concurrency: release
+        outputs:
+            tabr: ${{ steps.release.outputs.tabr }}
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v7
+            - uses: jdx/mise-action@v3
+              with:
+                  experimental: true
+                  install: false
+            - id: release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: mise release
+
+    build:
+        needs: release
+        strategy:
+            fail-fast: false
+            matrix:
+                os:
+                    - macos-14
+                    - ubuntu-latest
+                    - ubuntu-24.04-arm
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v7
+            - run: |
+                  git submodule update --init vendor/gritql
+                  git -C vendor/gritql submodule update --init \
+                      vendor/tree-sitter-facade vendor/tree-sitter-gritql vendor/web-tree-sitter
+                  git -C vendor/gritql apply ../../patches/gritql-python-only.patch
+            - uses: dtolnay/rust-toolchain@stable
+            - uses: jdx/mise-action@v3
+              with:
+                  experimental: true
+            - env:
+                  GITHUB_REF_NAME: ${{ needs.release.outputs.tabr }}
+              run: mise set-environment
+            - run: mise set-package-version
+            - run: mise build
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: wheel-${{ matrix.os }}
+                  path: dist/*.whl
+
+    publish:
+        needs: [build, release]
+        runs-on: ubuntu-latest
+        environment:
+            name: prod
+        permissions:
+            contents: write
+            id-token: write
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/download-artifact@v4
+              with:
+                  merge-multiple: true
+                  path: dist
+            - uses: jdx/mise-action@v3
+              with:
+                  experimental: true
+            - env:
+                  GITHUB_REF_NAME: ${{ needs.release.outputs.tabr }}
+              run: mise set-environment
+            - run: mise twine-check
+            - env:
+                  GH_TOKEN: ${{ github.token }}
+              run: gh release upload "$TABR" dist/*.whl
+            - uses: pypa/gh-action-pypi-publish@release/v1
+
+run-name: Acting on behalf of ${{ github.actor }}
