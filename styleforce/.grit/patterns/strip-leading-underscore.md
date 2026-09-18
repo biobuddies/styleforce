@@ -59,7 +59,7 @@ def render(context, _request):
 ## Loop variable remains intact
 
 ```python
-for _index in range(3):
+for _ in range(3):
     print('tick')
 ```
 
