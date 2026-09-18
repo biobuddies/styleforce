@@ -70,9 +70,9 @@ jobs:
             - uses: jdx/mise-action@v3
               with:
                   experimental: true
-            - env:
-                  TABR: ${{ needs.test.outputs.tabr }}
-              run: mise set-environment
+            - run: |
+                  mise set-environment
+                  echo "TABR=${{ needs.test.outputs.tabr }}" >> "$GITHUB_ENV"
             - run: mise set-package-version
             - run: mise build
             - run: mise twine-check
