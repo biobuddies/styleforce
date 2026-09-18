@@ -4,6 +4,7 @@ on: # yamllint disable-line rule:truthy
     pull_request:
     push:
         branches:
+            - fix-release-version
             - main
     workflow_dispatch:
 
@@ -85,6 +86,7 @@ jobs:
               run: gh release upload "$TABR" dist/*.whl
 
     publish:
+        if: github.ref == 'refs/heads/main'
         needs: build
         environment:
             name: prod
