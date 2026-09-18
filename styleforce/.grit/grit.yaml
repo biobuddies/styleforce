@@ -2,6 +2,8 @@ version: 0.0.1
 patterns:
     - name: inline_single_use_assignment
       path: .grit/patterns/inline_single_use_assignment.md
+    - name: strip-leading-underscore
+      path: .grit/patterns/strip-leading-underscore.md
     - name: cls-parameter
       path: .grit/patterns/standard-identifiers/cls-parameter.md
     - name: inner-function
