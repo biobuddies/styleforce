@@ -1,4 +1,5 @@
 default_context:
     description: Autoformat the Rule of Three and more
     languages: Node,Python,Rust
-    python_dependencies: []
+    node_dev_dependencies:
+        '@getgrit/cli': 0.1.0-alpha.1743007075

@@ -27,7 +27,7 @@ def build(**kwargs):
     return dict(kwargs)
 ```
 
-## Already named 'kwargs' — unchanged
+## Already named 'kwargs': unchanged
 
 ```python
 def build(**kwargs):
