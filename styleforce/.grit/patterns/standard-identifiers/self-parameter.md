@@ -54,7 +54,7 @@ class Codename:
         return self.name.lower()
 ```
 
-## Class method receiver — unchanged
+## Class method receiver: unchanged
 
 ```python
 class Codename:
@@ -63,7 +63,7 @@ class Codename:
         return cls(name.upper())
 ```
 
-## Static method — unchanged
+## Static method: unchanged
 
 ```python
 class Codename:
@@ -72,7 +72,7 @@ class Codename:
         return f'{first}-{second}'
 ```
 
-## Nested function — unchanged
+## Nested function: unchanged
 
 ```python
 class Codename:

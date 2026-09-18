@@ -27,14 +27,14 @@ def log(*args):
     return len(args)
 ```
 
-## Already named 'args' — unchanged
+## Already named 'args': unchanged
 
 ```python
 def log(*args):
     return len(args)
 ```
 
-## Keyword-only marker — unchanged
+## Keyword-only marker: unchanged
 
 ```python
 def log(first, *, second):

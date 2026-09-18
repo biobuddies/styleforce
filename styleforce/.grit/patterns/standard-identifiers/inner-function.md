@@ -55,7 +55,7 @@ def double_first(values):
     return inner(values[0])
 ```
 
-## Already named 'inner' — unchanged
+## Already named 'inner': unchanged
 
 ```python
 def make_handler():
@@ -65,7 +65,7 @@ def make_handler():
     return inner
 ```
 
-## Multiple inner functions — unchanged
+## Multiple inner functions: unchanged
 
 ```python
 def make_handlers():

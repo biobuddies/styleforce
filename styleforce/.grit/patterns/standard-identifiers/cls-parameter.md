@@ -33,7 +33,7 @@ class Codename:
         return cls(name.upper())
 ```
 
-## Already named 'cls' — unchanged
+## Already named 'cls': unchanged
 
 ```python
 class Codename:
@@ -42,7 +42,7 @@ class Codename:
         return cls(name.upper())
 ```
 
-## Instance method receiver — unchanged
+## Instance method receiver: unchanged
 
 ```python
 class Codename:
@@ -50,7 +50,7 @@ class Codename:
         return self.name.lower()
 ```
 
-## Static method — unchanged
+## Static method: unchanged
 
 ```python
 class Codename:
