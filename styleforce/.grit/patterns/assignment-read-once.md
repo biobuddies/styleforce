@@ -48,7 +48,7 @@ print('A01')
 print('B02')
 ```
 
-## Assignment without same-scope use — expect no rewrite
+## Assignment without same-scope use: expect no rewrite
 
 ```python
 wells = ('A01', 'B02')
@@ -64,7 +64,7 @@ print(T8M_90964_c23CT)
 log(T8M_90964_c23CT)
 ```
 
-## Grit-ignore comment disables inlining — expect no rewrite
+## Grit-ignore comment disables inlining: expect no rewrite
 
 Inlining would evaluate `get_time()` after the `sleep`, so opt out with `grit-ignore`.
 
