@@ -6,7 +6,7 @@ Reserving variables and functions for internal purposes is a highly speculative 
 which assumes 1. external use will arise and then 2. internal use will need to permanently diverge
 from external use. Instead of peppering lots of code that will never even get to 1. with
 `_leading_underscores`, just [expand and contract](https://martinfowler.com/bliki/ParallelChange.html)
-the few times you end up all the way at 2. In functions, loops, and unpacking a leading underscore
+the few times you end up all the way at 2. In functions, loops, and unpacking, a leading underscore
 has an entirely different meaning: unused.
 
 ```grit
