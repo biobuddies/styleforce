@@ -2,9 +2,6 @@
 title: Strip a single leading underscore from module-level names
 ---
 
-Strip a single leading underscore from a module-level function or variable, renaming every
-reference.
-
 Reserving variables and functions for internal purposes is a highly speculative library concern
 which assumes 1. external use will arise and then 2. internal use will need to permanently diverge
 from external use. Instead of peppering lots of code that will never even get to 1. with
