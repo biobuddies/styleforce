@@ -3,6 +3,12 @@ run = '''
 #!/usr/bin/env bash
 set -o errexit -o nounset -o pipefail
 uv build --wheel --python 3.12 --out-dir dist
+# maturin tags the wheel linux_x86_64; the manylinux container relabels it for PyPI
+if [[ ${AUDITWHEEL_PLAT-} ]]; then
+    auditwheel repair dist/*.whl --wheel-dir=/tmp/wheelhouse
+    rm dist/*.whl
+    mv /tmp/wheelhouse/*.whl dist
+fi
 python pypi_compatible_build.py
 '''
 
