@@ -80,7 +80,6 @@ jobs:
               with:
                   experimental: true
             - run: mise set-environment
-            # A pull request builds wheels to exercise manylinux; only a push versions and releases
             - if: github.event_name == 'push'
               run: echo "TABR=${{ needs.test.outputs.tabr }}" >> "$GITHUB_ENV"
             - if: github.event_name == 'push'
