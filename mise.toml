@@ -1,15 +1,25 @@
 [tasks.build]
-run = 'uv build --wheel --python 3.12 --out-dir dist'
+run = '''
+#!/usr/bin/env bash
+set -o errexit -o nounset -o pipefail
+# maturin tags plain linux by default; target the container's manylinux policy for PyPI
+if [[ ${AUDITWHEEL_PLAT-} ]]; then
+    compatibility=${AUDITWHEEL_PLAT%_x86_64}
+    export MATURIN_PEP517_ARGS="--compatibility ${compatibility%_aarch64}"
+fi
+uv build --wheel --python 3.12 --out-dir dist
+python pypi_compatible_build.py
+'''
 
 [tasks.release]
 run = '''
 #!/usr/bin/env bash
 set -o errexit -o nounset -o pipefail
-prefix=$(date -u '+v%Y.%U.')
+prefix=$(date -u '+v%Y.%-U.')
 git fetch --tags
 latest=$(git tag --list "$prefix*" --sort=-version:refname | head -1)
 count=${latest#"$prefix"}
-tabr="$prefix$(printf '%02d' "$((10#${count:-0} + 1))")"
+tabr="$prefix$((10#${count:-0} + 1))"
 gh release create "$tabr" --generate-notes --target "$(git rev-parse HEAD)" >&2
 git fetch --tags
 [[ -z ${GITHUB_OUTPUT-} ]] || echo "tabr=$tabr" >> "$GITHUB_OUTPUT"
@@ -22,7 +32,7 @@ run = '''
 #!/usr/bin/env bash
 set -o errexit -o nounset -o pipefail
 tabr=${TABR:-$(mise tabr)}
-[[ $tabr =~ ^v[0-9]{4}\.[0-9]{2}\.[0-9]{2}$ ]]
+[[ $tabr =~ ^v[0-9]{4}\.[0-9]+\.[0-9]+$ ]]
 sed -i.bak -E 's/^version = "[^"]+"/version = "'"${tabr#v}"'"/' \
     styleforce/rust/Cargo.toml
 '''
@@ -41,3 +51,7 @@ pytest --pyargs styleforce.tests --cov${PYTEST_COV-} \
 
 [tasks.twine-check]
 run = 'uvx twine check --strict dist/*'
+
+[tools]
+# The manylinux build container lacks the runner's global gh
+gh = 'latest'
