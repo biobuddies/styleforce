@@ -54,4 +54,5 @@ run = 'uvx twine check --strict dist/*'
 
 [tools]
 # The manylinux build container lacks the runner's global gh
-gh = 'latest'
+# pinning latest as of 2026-09-19 because CCW can't handle dynamic latest
+gh = '2.101.0'
