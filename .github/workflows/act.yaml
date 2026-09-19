@@ -65,6 +65,9 @@ jobs:
         container: ${{ matrix.container }}
         steps:
             - uses: actions/checkout@v7
+            # Root in the container does not own the mounted workspace or submodules
+            - if: matrix.container
+              run: git config --global --add safe.directory '*'
             - run: |
                   git submodule update --init vendor/gritql
                   git -C vendor/gritql submodule update --init \
