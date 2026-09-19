@@ -10,8 +10,7 @@ from hashlib import sha256
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
-
-def make_pypi_compatible(wheel: Path) -> None:
+for wheel in Path('dist').glob('*.whl'):
     contents = {}
     metadata = record = ''
     with ZipFile(wheel) as archive:
@@ -37,7 +36,3 @@ def make_pypi_compatible(wheel: Path) -> None:
     with ZipFile(wheel, 'w', ZIP_DEFLATED) as archive:
         for name, data in contents.items():
             archive.writestr(name, data)
-
-
-for wheel in Path('dist').glob('*.whl'):
-    make_pypi_compatible(wheel)
