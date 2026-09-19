@@ -3,3 +3,5 @@ default_context:
     languages: Node,Python,Rust
     node_dev_dependencies:
         '@getgrit/cli': 0.1.0-alpha.1743007075
+    python_dependencies:
+        - libcst
