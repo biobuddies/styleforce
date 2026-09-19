@@ -3,7 +3,7 @@ run = '''
 #!/usr/bin/env bash
 set -o errexit -o nounset -o pipefail
 uv build --wheel --python 3.12 --out-dir dist
-python pypi_compatible_build.py dist/*.whl
+python pypi_compatible_build.py
 '''
 
 [tasks.release]

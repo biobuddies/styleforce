@@ -7,11 +7,11 @@ https://packaging.python.org/specifications/core-metadata
 
 from base64 import urlsafe_b64encode
 from hashlib import sha256
-from sys import argv
+from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
 
-def make_pypi_compatible(wheel: str) -> None:
+def make_pypi_compatible(wheel: Path) -> None:
     contents = {}
     metadata = record = ''
     with ZipFile(wheel) as archive:
@@ -39,5 +39,5 @@ def make_pypi_compatible(wheel: str) -> None:
             archive.writestr(name, data)
 
 
-for wheel in argv[1:]:
+for wheel in Path('dist').glob('*.whl'):
     make_pypi_compatible(wheel)
