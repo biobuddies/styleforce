@@ -11,15 +11,12 @@ from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
 for wheel in Path('dist').glob('styleforce-*.whl'):
-    contents = {}
-    metadata = record = ''
+    distribution, version = wheel.name.split('-')[:2]
+    dist_info = f'{distribution}-{version}.dist-info'
+    metadata = f'{dist_info}/METADATA'
+    record = f'{dist_info}/RECORD'
     with ZipFile(wheel) as archive:
-        for name in archive.namelist():
-            contents[name] = archive.read(name)
-            if name.endswith('.dist-info/METADATA'):
-                metadata = name
-            elif name.endswith('.dist-info/RECORD'):
-                record = name
+        contents = {member: archive.read(member) for member in archive.namelist()}
     contents[metadata] = ''.join(
         line.replace('Requires-Dist:', 'Requires-External:', 1)
         if line.startswith('Requires-Dist:') and '://' in line
@@ -34,5 +31,5 @@ for wheel in Path('dist').glob('styleforce-*.whl'):
         for line in contents[record].decode().splitlines(keepends=True)
     ).encode()
     with ZipFile(wheel, 'w', ZIP_DEFLATED) as archive:
-        for name, data in contents.items():
-            archive.writestr(name, data)
+        for member, data in contents.items():
+            archive.writestr(member, data)
