@@ -10,13 +10,16 @@ on: # yamllint disable-line rule:truthy
 permissions:
     contents: read
 
+concurrency:
+    group: release-${{ github.event_name == 'push' && 'main' || github.ref }}
+    cancel-in-progress: ${{ github.event_name != 'push' }}
+
 defaults:
     run:
         shell: bash --noprofile --norc -o errexit -o nounset -o pipefail -o xtrace {0}
 
 jobs:
     test:
-        concurrency: release-${{ github.event_name == 'push' && 'main' || github.run_id }}
         outputs:
             tabr: ${{ steps.release.outputs.tabr }}
         runs-on: ubuntu-latest
@@ -37,6 +40,7 @@ jobs:
             - run: mise build
             - run: mise twine-check
             - run: mise test
+            # TODO: delete the tag and release when a later build or publish job fails
             - id: release
               if: github.event_name == 'push'
               env:
@@ -44,7 +48,6 @@ jobs:
               run: mise release
 
     build:
-        if: github.event_name == 'push'
         needs: test
         permissions:
             contents: write
@@ -76,21 +79,25 @@ jobs:
             - uses: jdx/mise-action@v3
               with:
                   experimental: true
-            - run: |
-                  mise set-environment
-                  echo "TABR=${{ needs.test.outputs.tabr }}" >> "$GITHUB_ENV"
-            - run: mise set-package-version
+            - run: mise set-environment
+            # A pull request builds wheels to exercise manylinux; only a push versions and releases
+            - if: github.event_name == 'push'
+              run: echo "TABR=${{ needs.test.outputs.tabr }}" >> "$GITHUB_ENV"
+            - if: github.event_name == 'push'
+              run: mise set-package-version
             - run: mise build
             - run: mise twine-check
             - uses: actions/upload-artifact@v4
               with:
                   name: wheel-${{ matrix.name }}
                   path: dist/*.whl
-            - env:
+            - if: github.event_name == 'push'
+              env:
                   GH_TOKEN: ${{ github.token }}
               run: gh release upload "$TABR" dist/*.whl
 
     publish:
+        if: github.event_name == 'push'
         needs: build
         environment:
             name: prod
