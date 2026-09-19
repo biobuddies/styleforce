@@ -20,8 +20,6 @@ defaults:
 
 jobs:
     test:
-        outputs:
-            tabr: ${{ steps.release.outputs.tabr }}
         runs-on: ubuntu-latest
         permissions:
             contents: write
@@ -41,8 +39,7 @@ jobs:
             - run: mise twine-check
             - run: mise test
             # TODO: delete the tag and release when a later build or publish job fails
-            - id: release
-              if: github.event_name == 'push'
+            - if: github.event_name == 'push'
               env:
                   GH_TOKEN: ${{ github.token }}
               run: mise release
@@ -81,8 +78,6 @@ jobs:
                   experimental: true
             - run: mise set-environment
             - if: github.event_name == 'push'
-              env:
-                  TABR: ${{ needs.test.outputs.tabr }}
               run: mise set-package-version
             - run: mise build
             - run: mise twine-check
@@ -93,7 +88,7 @@ jobs:
             - if: github.event_name == 'push'
               env:
                   GH_TOKEN: ${{ github.token }}
-              run: gh release upload "${{ needs.test.outputs.tabr }}" dist/*.whl
+              run: gh release upload "$TABR" dist/*.whl
 
     publish:
         if: github.event_name == 'push'
