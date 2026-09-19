@@ -8,12 +8,13 @@ https://packaging.python.org/specifications/core-metadata
 from base64 import urlsafe_b64encode
 from hashlib import sha256
 from pathlib import Path
+from re import findall
 from shutil import copyfileobj
 from zipfile import ZIP_DEFLATED, ZipFile
 
 for wheel in Path('dist').glob('styleforce-*.whl'):
     record, metadata = (
-        '/'.join(('-'.join(wheel.name.split('-')[:2]) + '.dist-info', name))
+        '/'.join((findall(r'[^-]+-[^-]+', wheel.name)[0] + '.dist-info', name))
         for name in ('RECORD', 'METADATA')
     )
     repaired = wheel.with_name(f'{wheel.name}.tmp')
