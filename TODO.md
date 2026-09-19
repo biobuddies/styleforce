@@ -139,7 +139,8 @@ Steps:
 
 ```python
 record, metadata = (
-    f'{"-".join(wheel.name.split("-")[:2])}.dist-info/{name}' for name in ('RECORD', 'METADATA')
+    '/'.join(('-'.join(wheel.name.split('-')[:2]) + '.dist-info', name))
+    for name in ('RECORD', 'METADATA')
 )
 ```
 

@@ -13,7 +13,8 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 for wheel in Path('dist').glob('styleforce-*.whl'):
     record, metadata = (
-        f'{"-".join(wheel.name.split("-")[:2])}.dist-info/{name}' for name in ('RECORD', 'METADATA')
+        '/'.join(('-'.join(wheel.name.split('-')[:2]) + '.dist-info', name))
+        for name in ('RECORD', 'METADATA')
     )
     repaired = wheel.with_name(f'{wheel.name}.tmp')
     with ZipFile(wheel) as source, ZipFile(repaired, 'w', ZIP_DEFLATED) as target:
