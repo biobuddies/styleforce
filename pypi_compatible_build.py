@@ -10,7 +10,7 @@ from hashlib import sha256
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
-for wheel in Path('dist').glob('*.whl'):
+for wheel in Path('dist').glob('styleforce-*.whl'):
     contents = {}
     metadata = record = ''
     with ZipFile(wheel) as archive:
