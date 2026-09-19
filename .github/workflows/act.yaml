@@ -81,8 +81,8 @@ jobs:
                   experimental: true
             - run: mise set-environment
             - if: github.event_name == 'push'
-              run: echo "TABR=${{ needs.test.outputs.tabr }}" >> "$GITHUB_ENV"
-            - if: github.event_name == 'push'
+              env:
+                  TABR: ${{ needs.test.outputs.tabr }}
               run: mise set-package-version
             - run: mise build
             - run: mise twine-check
@@ -93,7 +93,7 @@ jobs:
             - if: github.event_name == 'push'
               env:
                   GH_TOKEN: ${{ github.token }}
-              run: gh release upload "$TABR" dist/*.whl
+              run: gh release upload "${{ needs.test.outputs.tabr }}" dist/*.whl
 
     publish:
         if: github.event_name == 'push'
