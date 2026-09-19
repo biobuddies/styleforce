@@ -2,13 +2,11 @@
 run = '''
 #!/usr/bin/env bash
 set -o errexit -o nounset -o pipefail
-uv build --wheel --python 3.12 --out-dir dist
-# maturin tags the wheel linux_x86_64; the manylinux container relabels it for PyPI
+# maturin defaults to a linux_x86_64 tag; repair retags manylinux for PyPI in the container
 if [[ ${AUDITWHEEL_PLAT-} ]]; then
-    auditwheel repair dist/*.whl --wheel-dir=/tmp/wheelhouse
-    rm dist/*.whl
-    mv /tmp/wheelhouse/*.whl dist
+    export MATURIN_PEP517_ARGS='--auditwheel repair'
 fi
+uv build --wheel --python 3.12 --out-dir dist
 python pypi_compatible_build.py
 '''
 
