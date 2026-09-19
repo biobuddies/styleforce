@@ -12,10 +12,15 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 
 def make_pypi_compatible(wheel: str) -> None:
+    contents = {}
+    metadata = record = ''
     with ZipFile(wheel) as archive:
-        contents = {name: archive.read(name) for name in archive.namelist()}
-    metadata = next(name for name in contents if name.endswith('.dist-info/METADATA'))
-    record = next(name for name in contents if name.endswith('.dist-info/RECORD'))
+        for name in archive.namelist():
+            contents[name] = archive.read(name)
+            if name.endswith('.dist-info/METADATA'):
+                metadata = name
+            elif name.endswith('.dist-info/RECORD'):
+                record = name
     contents[metadata] = ''.join(
         line.replace('Requires-Dist:', 'Requires-External:', 1)
         if line.startswith('Requires-Dist:') and '://' in line
