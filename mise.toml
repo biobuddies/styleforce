@@ -46,3 +46,7 @@ pytest --pyargs styleforce.tests --cov${PYTEST_COV-} \
 
 [tasks.twine-check]
 run = 'uvx twine check --strict dist/*'
+
+[tools]
+# The manylinux build container lacks the runner's global gh
+gh = 'latest'
