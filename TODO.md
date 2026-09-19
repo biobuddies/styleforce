@@ -127,3 +127,28 @@ Steps:
 * Rewrite the `if`/`elif`/`else` walrus chain as sequential `if not cona and (... := ...)` guards.
   Uncovered (hard): context-sensitive control-flow restructuring, the largest leap here.
 * Rename `repository` to `repository_slug`: cosmetic.
+
+## Fold parallel dist-info assignments into a generator unpack
+
+```python
+    distribution, version = wheel.name.split('-')[:2]
+    dist_info = f'{distribution}-{version}.dist-info'
+    metadata = f'{dist_info}/METADATA'
+    record = f'{dist_info}/RECORD'
+```
+
+```python
+record, metadata = (
+    f'{"-".join(wheel.name.split("-")[:2])}.dist-info/{name}' for name in ('RECORD', 'METADATA')
+)
+```
+
+Steps:
+* Inline `distribution` and `version`, read once each, into the `dist_info` f-string, rejoining the
+  slice as `'-'.join(wheel.name.split('-')[:2])`. Uncovered (easy): `assignment-read-once` past a
+  tuple-unpacking target.
+* Inline `dist_info`, read twice, into `metadata` and `record`. Uncovered (hard): inline a name read
+  more than once when every reader shares it.
+* Fold `metadata` and `record`, whose f-strings differ only in the trailing `METADATA`/`RECORD`,
+  into one generator over the two names, unpacked. Uncovered (hard): spot sibling assignments
+  varying by a single literal and rewrite them as an unpacked comprehension.
