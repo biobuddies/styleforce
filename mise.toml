@@ -2,6 +2,13 @@
 run = '''
 #!/usr/bin/env bash
 set -o errexit -o nounset -o pipefail
+# diagnostic: TABR and the inputs mise tabr resolved it from in this job
+echo "diag build: TABR=${TABR:?} REF_NAME=${GITHUB_REF_NAME-} HEAD_REF=${GITHUB_HEAD_REF-}"
+echo "diag build: tags=$(git tag --points-at HEAD 2>/dev/null | paste -sd, -)"
+# rewrite the placeholder version only for release tags
+if [[ $TABR =~ ^v[0-9]{4}\.[0-9]+\.[0-9]+$ ]]; then
+    sed -i.bak -E 's/^version = "[^"]+"/version = "'"${TABR#v}"'"/' styleforce/rust/Cargo.toml
+fi
 # maturin tags plain linux by default; target the container's manylinux policy for PyPI
 if [[ ${AUDITWHEEL_PLAT-} ]]; then
     compatibility=${AUDITWHEEL_PLAT%_x86_64}
@@ -23,18 +30,7 @@ tabr="$prefix$((10#${count:-0} + 1))"
 gh release create "$tabr" --generate-notes --target "$(git rev-parse HEAD)" >&2
 git fetch --tags
 [[ -z ${GITHUB_OUTPUT-} ]] || echo "tabr=$tabr" >> "$GITHUB_OUTPUT"
-GITHUB_REF_NAME=$tabr mise set-environment >&2
-echo "$tabr"
-'''
-
-[tasks.set-package-version]
-run = '''
-#!/usr/bin/env bash
-set -o errexit -o nounset -o pipefail
-tabr=${TABR:-$(mise tabr)}
-[[ $tabr =~ ^v[0-9]{4}\.[0-9]+\.[0-9]+$ ]]
-sed -i.bak -E 's/^version = "[^"]+"/version = "'"${tabr#v}"'"/' \
-    styleforce/rust/Cargo.toml
+GITHUB_REF_NAME=$tabr mise set-environment
 '''
 
 [tasks.test]
