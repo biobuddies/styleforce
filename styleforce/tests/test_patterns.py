@@ -13,5 +13,5 @@ def _ruff(source: str) -> str:
 
 def test_sample(sample: tuple[str, str, str]) -> None:
     pattern, before, after = sample
-    actual = styleforce.apply(pattern, before)
+    actual = styleforce.apply(pattern, before, 'snippet.py')
     assert _ruff(actual) == _ruff(after), actual
