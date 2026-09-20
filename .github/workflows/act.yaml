@@ -19,6 +19,19 @@ defaults:
         shell: bash --noprofile --norc -o errexit -o nounset -o pipefail -o xtrace {0}
 
 jobs:
+    check:
+        runs-on: ubuntu-latest
+        # Lint and format only; skip the Rust toolchain and the gritql patch that dirties submodules
+        env:
+            MISE_DISABLE_TOOLS: rust
+        steps:
+            - uses: actions/checkout@v7
+            - uses: jdx/mise-action@v3
+              with:
+                  experimental: true
+            - run: mise set-environment
+            - run: mise pre-commit
+
     test-release:
         runs-on: ubuntu-latest
         permissions:
