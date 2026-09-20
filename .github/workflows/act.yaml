@@ -11,7 +11,7 @@ permissions:
     contents: read
 
 concurrency:
-    group: release-${{ github.event_name == 'push' && 'main' || github.ref }}
+    group: act-${{ github.event_name == 'push' && 'main' || github.ref }}
     cancel-in-progress: ${{ github.event_name != 'push' }}
 
 defaults:
@@ -19,7 +19,7 @@ defaults:
         shell: bash --noprofile --norc -o errexit -o nounset -o pipefail -o xtrace {0}
 
 jobs:
-    test:
+    test-release:
         runs-on: ubuntu-latest
         permissions:
             contents: write
@@ -44,8 +44,8 @@ jobs:
                   GH_TOKEN: ${{ github.token }}
               run: mise release
 
-    build:
-        needs: test
+    parallel-builds:
+        needs: test-release
         permissions:
             contents: write
         strategy:
@@ -63,7 +63,10 @@ jobs:
         runs-on: ${{ matrix.os }}
         container: ${{ matrix.container }}
         steps:
+            # Fetch tags so mise tabr resolves the release the test job just created
             - uses: actions/checkout@v7
+              with:
+                  fetch-tags: true
             # Root in the container does not own the mounted workspace or submodules
             - if: matrix.container
               run: git config --global --add safe.directory '*'
@@ -77,8 +80,6 @@ jobs:
               with:
                   experimental: true
             - run: mise set-environment
-            - if: github.event_name == 'push'
-              run: mise set-package-version
             - run: mise build
             - run: mise twine-check
             - uses: actions/upload-artifact@v4
@@ -92,30 +93,19 @@ jobs:
 
     publish:
         if: github.event_name == 'push'
-        needs: build
+        needs: parallel-builds
         environment:
             name: prod
         permissions:
             id-token: write
         runs-on: ubuntu-latest
-        strategy:
-            fail-fast: false
-            matrix:
-                name:
-                    - macos-arm64
-                    - linux-x86-64
-                    - linux-arm64
         steps:
+            # Gather every platform's wheel into dist before publishing
             - uses: actions/download-artifact@v4
               with:
-                  name: wheel-${{ matrix.name }}
+                  pattern: wheel-*
+                  merge-multiple: true
                   path: dist
             - uses: pypa/gh-action-pypi-publish@release/v1
-
-    published:
-        needs: publish
-        runs-on: ubuntu-latest
-        steps:
-            - run: true
 
 run-name: Acting on behalf of ${{ github.actor }}
