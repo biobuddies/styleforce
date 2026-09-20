@@ -4,7 +4,7 @@ from pathlib import Path
 
 from pytest import CaptureFixture, MonkeyPatch
 
-from styleforce import cli
+import styleforce
 
 
 def test_main_runs_every_pattern_on_every_file(
@@ -19,9 +19,9 @@ def test_main_runs_every_pattern_on_every_file(
         calls.append((pattern, filename))
         return f'{source}\nchanged'
 
-    monkeypatch.setattr(cli, 'apply', append_pattern)
+    monkeypatch.setattr(styleforce, 'apply', append_pattern)
 
-    cli.main([str(filename) for filename in filenames])
+    styleforce.main([str(filename) for filename in filenames])
 
     assert len(calls) == 16
     assert [filename for _, filename in calls] == [str(filenames[0])] * 8 + [str(filenames[1])] * 8
