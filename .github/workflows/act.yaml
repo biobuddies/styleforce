@@ -5,6 +5,7 @@ on: # yamllint disable-line rule:truthy
     push:
         branches:
             - main
+            - really-really-fix-release
     workflow_dispatch:
 
 permissions:
@@ -77,8 +78,6 @@ jobs:
               with:
                   experimental: true
             - run: mise set-environment
-            - if: github.event_name == 'push'
-              run: mise set-package-version
             - run: mise build
             - run: mise twine-check
             - uses: actions/upload-artifact@v4
@@ -91,7 +90,7 @@ jobs:
               run: gh release upload "$TABR" dist/*.whl
 
     publish:
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref_name == 'main'
         needs: build
         environment:
             name: prod
