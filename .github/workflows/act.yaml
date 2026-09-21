@@ -1,15 +1,3 @@
-name: act
-
-on: # yamllint disable-line rule:truthy
-    pull_request:
-    push:
-        branches:
-            - main
-    workflow_dispatch:
-
-permissions:
-    contents: read
-
 concurrency:
     group: act-${{ github.event_name == 'push' && 'main' || github.ref }}
     cancel-in-progress: ${{ github.event_name != 'push' }}
@@ -18,7 +6,25 @@ defaults:
     run:
         shell: bash --noprofile --norc -o errexit -o nounset -o pipefail -o xtrace {0}
 
+name: act
+
+permissions:
+    contents: read
+
 jobs:
+    check:
+        runs-on: ubuntu-latest
+        # Lint and format only; skip the Rust toolchain and the gritql patch that dirties submodules
+        env:
+            MISE_DISABLE_TOOLS: rust
+        steps:
+            - uses: actions/checkout@v7
+            - uses: jdx/mise-action@v4
+              with:
+                  experimental: true
+            - run: mise set-environment
+            - run: mise pre-commit
+
     test-release:
         runs-on: ubuntu-latest
         permissions:
@@ -31,7 +37,7 @@ jobs:
                       vendor/tree-sitter-facade vendor/tree-sitter-gritql vendor/web-tree-sitter
                   git -C vendor/gritql apply ../../patches/gritql-python-only.patch
             - uses: dtolnay/rust-toolchain@stable
-            - uses: jdx/mise-action@v3
+            - uses: jdx/mise-action@v4
               with:
                   experimental: true
             - run: mise set-environment
@@ -76,7 +82,7 @@ jobs:
                       vendor/tree-sitter-facade vendor/tree-sitter-gritql vendor/web-tree-sitter
                   git -C vendor/gritql apply ../../patches/gritql-python-only.patch
             - uses: dtolnay/rust-toolchain@stable
-            - uses: jdx/mise-action@v3
+            - uses: jdx/mise-action@v4
               with:
                   experimental: true
             - run: mise set-environment
@@ -107,5 +113,12 @@ jobs:
                   merge-multiple: true
                   path: dist
             - uses: pypa/gh-action-pypi-publish@release/v1
+
+on: # yamllint disable-line rule:truthy
+    pull_request:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
 
 run-name: Acting on behalf of ${{ github.actor }}
