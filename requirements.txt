@@ -46,6 +46,8 @@ jsbeautifier==2.0.3
     #   djlint
 json5==0.15.0
     # via djlint
+libcst==1.9.0
+    # via styleforce (pyproject.toml)
 markdown-it-py==4.2.0
     # via rich
 markupsafe==3.0.3
@@ -88,6 +90,7 @@ pyyaml==6.0.3
     # via
     #   cookiecutter
     #   djlint
+    #   libcst
     #   yamllint
 regex==2026.7.19
     # via djlint

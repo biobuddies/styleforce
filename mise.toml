@@ -30,11 +30,8 @@ gh release create "$tabr" --generate-notes --target "$(git rev-parse HEAD)"
 run = '''
 #!/usr/bin/env bash
 set -o errexit -o nounset -o pipefail
-uv pip install dist/*.whl
-test_directory=$(mktemp -d)
-trap 'rm -rf "$test_directory"' EXIT
-cd "$test_directory"
-pytest --pyargs styleforce.tests --cov${PYTEST_COV-} \
+uv pip install --editable .
+python -m pytest score/test.py styleforce/tests --cov${PYTEST_COV-} \
     --cov-report=term-missing:skip-covered --verbose "$@"
 '''
 
