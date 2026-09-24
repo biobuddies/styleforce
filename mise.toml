@@ -34,7 +34,7 @@ uv pip install dist/*.whl
 test_directory=$(mktemp -d)
 trap 'rm -rf "$test_directory"' EXIT
 cd "$test_directory"
-pytest --pyargs styleforce.tests --cov${PYTEST_COV-} \
+pytest --pyargs styleforce.tests --cov${PYTEST_COV-=styleforce} \
     --cov-report=term-missing:skip-covered --verbose "$@"
 '''
 
