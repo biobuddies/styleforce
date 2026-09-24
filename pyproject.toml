@@ -35,6 +35,9 @@ test = [
     'pytest-cov',
 ]
 
+[tool.coverage.run]
+source_pkgs = ['styleforce']
+
 [tool.pytest.ini_options]
 norecursedirs = ['.venv', 'node_modules', 'vendor', '{{cookiecutter.dot}}']
 

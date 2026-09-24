@@ -4,7 +4,9 @@ Aspirational fixtures copied from #5. Neither rewrites yet. Existing patterns co
 straight-line skeleton; the steps below note what each still needs, marked (easy) or (hard).
 
 Covered today:
-* `assignment-read-once` -- inline an assignment read exactly once.
+* `assignment-read-once` -- inline an assignment read exactly once within the nearest enclosing
+  function, or the module outside functions, when that read is in the very next statement.
+  Uncovered (hard): a read further down, when no intervening statement could change the value.
 * `function-called-once` -- inline a single-use function whose body runs straight through to one
   trailing `return`, called as `target = name(arg)`, with positional parameters.
 * `standard-identifiers/*` -- unrelated here.
@@ -61,7 +63,8 @@ Steps:
   (`if not offset_str: return ...; return ...`). Uncovered (hard): fold an early return into a
   ternary, `f'...' if offset_str else '+00:00'`.
 * The call sits in a method inside an `if`, not at module top level. Uncovered (easy): widen
-  `function-called-once` past `within module` to any statement scope.
+  `function-called-once` past `within module` to function scope, as `assignment-read-once` now
+  does.
 * Collapse `offset_str`, read once: `assignment-read-once` (covered) once the call is inlined.
 * Add the `# noqa` and `# pyrefly` suppressions the moved code needs. Uncovered (hard): demands
   linter feedback, beyond a structural rewrite.
@@ -153,3 +156,9 @@ Steps:
 * Fold `metadata` and `record`, whose f-strings differ only in the trailing `METADATA`/`RECORD`,
   into one generator over the two names, unpacked. Uncovered (hard): spot sibling assignments
   varying by a single literal and rewrite them as an unpacked comprehension.
+
+# Release TODO
+
+* Test each architecture's wheel: `parallel-builds` builds macOS arm64 and Linux x86-64 and arm64
+  wheels without importing them, and `mise test` imports the source tree beside the native module
+  that `mise build` extracts from the local wheel.

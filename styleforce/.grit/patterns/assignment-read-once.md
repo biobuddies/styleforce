@@ -2,7 +2,8 @@
 title: Inline single-use assignment
 ---
 
-Inline Python assignments that are read exactly once.
+Inline Python assignments that are read exactly once within the nearest enclosing function, or
+the module outside functions.
 
 ```grit
 engine marzano(0.1)
@@ -12,7 +13,10 @@ language python
   $use <: after `$variable = $value
 ` as $assignment,
   $use <: contains `$variable`,
-  $use <: within module(statements=$statements),
+  $use <: within or {
+    function_definition(body=block(statements=$statements)),
+    module(statements=$statements)
+  },
   $statements <: not some $other where {
     $other <: contains `$variable`,
     $other <: not $use,
@@ -62,6 +66,56 @@ print('dispensing to plate')
 T8M_90964_c23CT = 'GGCCGAAGGAGACGCTGCAGT'
 print(T8M_90964_c23CT)
 log(T8M_90964_c23CT)
+```
+
+## Inline inside a function body
+
+From helicopyter `HeliStack.provide`.
+
+```python
+def provide(self, name: str, **kwargs: Any) -> type[TerraformElement]:
+    module = import_module(f'cdktf_cdktf_provider_{name}.provider')
+    return getattr(module, f'{name.title()}Provider')(self, 'this', **kwargs)
+```
+
+```python
+def provide(self, name: str, **kwargs: Any) -> type[TerraformElement]:
+    return getattr(
+        import_module(f'cdktf_cdktf_provider_{name}.provider'), f'{name.title()}Provider'
+    )(self, 'this', **kwargs)  # module
+```
+
+## Read after the enclosing block remains unchanged
+
+From nodeenv 1.9.1 `copy_node_from_prebuilt`. Scoping to the function body, not the nearest block,
+keeps `dest` defined for `copytree`.
+
+```python
+def copy_node_from_prebuilt(env_dir, src_dir, node_version):
+    if is_WIN:
+        dest = join(env_dir, 'Scripts')
+        mkdir(dest)
+    elif is_CYGWIN:
+        dest = join(env_dir, 'bin')
+        mkdir(dest)
+    else:
+        dest = env_dir
+    (src_folder,) = glob.glob(src_dir + to_utf8('/node-v%s*' % node_version))
+    copytree(src_folder, dest, True)
+```
+
+## Closure read remains unchanged
+
+Inlining would defer `perf_counter()` until `elapsed` runs.
+
+```python
+def start_timer() -> Callable[[], float]:
+    started = perf_counter()
+
+    def elapsed() -> float:
+        return perf_counter() - started
+
+    return elapsed
 ```
 
 ## Grit-ignore comment disables inlining: expect no rewrite

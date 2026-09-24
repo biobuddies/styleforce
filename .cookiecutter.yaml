@@ -3,3 +3,4 @@ default_context:
     languages: Node,Python,Rust
     node_dev_dependencies:
         '@getgrit/cli': 0.1.0-alpha.1743007075
+    publish_to_pypi: true
