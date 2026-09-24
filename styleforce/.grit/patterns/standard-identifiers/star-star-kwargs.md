@@ -11,7 +11,20 @@ language python
 function_definition() as $function where {
     $function <: contains dictionary_splat_pattern(dict=$name),
     $name <: not `kwargs`,
-    $function <: contains `$name` => `kwargs`
+    $function <: not contains keyword_argument(name=$name, value=$value) where {
+        $value <: not $name
+    },
+    $function <: contains bubble($name) or {
+        keyword_argument(name=$key, value=$value) where {
+            $key <: $name,
+            $value <: $name
+        } => `$key=kwargs`,
+        identifier() as $reference where {
+            $reference <: $name,
+            $reference <: not within attribute(attribute=$name),
+            $reference <: not within keyword_argument(name=$name)
+        } => `kwargs`
+    }
 }
 ```
 
