@@ -20,7 +20,11 @@ module(statements=$statements) where {
     } where {
         $name <: identifier(),
         $name <: r"_([^_].*)"($stripped),
-        $statements <: contains `$name` => `$stripped`
+        $statements <: not contains keyword_argument(name=$name),
+        $statements <: contains bubble($name, $stripped) identifier() as $reference where {
+            $reference <: $name,
+            $reference <: not within attribute(attribute=$name)
+        } => `$stripped`
     }
 }
 ```

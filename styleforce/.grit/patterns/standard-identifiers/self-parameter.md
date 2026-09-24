@@ -20,7 +20,11 @@ function_definition(parameters=$params) as $method where {
     },
     $params <: contains identifier() as $first,
     $first <: not `self`,
-    $method <: contains `$first` => `self`
+    $method <: not contains keyword_argument(name=$first),
+    $method <: contains bubble($first) identifier() as $reference where {
+        $reference <: $first,
+        $reference <: not within attribute(attribute=$first)
+    } => `self`
 }
 ```
 

@@ -11,7 +11,11 @@ language python
 function_definition() as $function where {
     $function <: contains list_splat_pattern(list=$name),
     $name <: not `args`,
-    $function <: contains `$name` => `args`
+    $function <: not contains keyword_argument(name=$name),
+    $function <: contains bubble($name) identifier() as $reference where {
+        $reference <: $name,
+        $reference <: not within attribute(attribute=$name)
+    } => `args`
 }
 ```
 
@@ -39,4 +43,28 @@ def log(*args):
 ```python
 def log(first, *, second):
     return first + second
+```
+
+## Attributes and keyword names keep their text
+
+From helicopyter `Block`; a keyword named like the parameter skips the function.
+
+```python
+class Block:
+    def __call__(self, *labels: str) -> Block:
+        return Block(self.kind, *self.labels, *labels)
+
+
+def tag(*labels: str) -> Block:
+    return Block('tag', labels=labels)
+```
+
+```python
+class Block:
+    def __call__(self, *args: str) -> Block:
+        return Block(self.kind, *self.labels, *args)
+
+
+def tag(*labels: str) -> Block:
+    return Block('tag', labels=labels)
 ```
