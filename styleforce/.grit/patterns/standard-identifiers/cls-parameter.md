@@ -13,7 +13,11 @@ decorated_definition(definition=function_definition(parameters=$params)) as $met
     $method <: contains `@classmethod`,
     $params <: contains identifier() as $first,
     $first <: not `cls`,
-    $method <: contains `$first` => `cls`
+    $method <: not contains keyword_argument(name=$first),
+    $method <: contains bubble($first) identifier() as $reference where {
+        $reference <: $first,
+        $reference <: not within attribute(attribute=$first)
+    } => `cls`
 }
 ```
 

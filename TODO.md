@@ -7,6 +7,9 @@ Covered today:
 * `assignment-read-once` -- inline an assignment read exactly once within the nearest enclosing
   function, or the module outside functions, when that read is in the very next statement.
   Uncovered (hard): a read further down, when no intervening statement could change the value.
+  Uncovered (easy): a read inside an f-string placeholder, when the result still fits the line.
+  Uncovered (hard): a read inside a compound statement or comprehension that runs exactly once,
+  such as an `if` test or a comprehension's first iterable.
 * `function-called-once` -- inline a single-use function whose body runs straight through to one
   trailing `return`, called as `target = name(arg)`, with positional parameters.
 * `standard-identifiers/*` -- unrelated here.
