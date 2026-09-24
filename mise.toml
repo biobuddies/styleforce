@@ -10,8 +10,13 @@ if [[ ${AUDITWHEEL_PLAT-} ]]; then
     compatibility=${AUDITWHEEL_PLAT%_x86_64}
     export MATURIN_PEP517_ARGS="--compatibility ${compatibility%_aarch64}"
 fi
+rm -f styleforce/_native.abi3.so
 uv build --wheel --python 3.12 --out-dir dist
 python pypi_compatible_build.py
+# Let the upstream test task import the source tree
+python -c "from pathlib import Path; from zipfile import ZipFile; ZipFile(max(
+    Path('dist').glob('styleforce-*.whl'), key=lambda wheel: wheel.stat().st_mtime
+)).extract('styleforce/_native.abi3.so')"
 '''
 
 [tasks.release]
@@ -24,18 +29,6 @@ latest=$(git tag --list "$prefix*" --sort=-version:refname | head -1)
 count=${latest#"$prefix"}
 tabr="$prefix$((10#${count:-0} + 1))"
 gh release create "$tabr" --generate-notes --target "$(git rev-parse HEAD)"
-'''
-
-[tasks.test]
-run = '''
-#!/usr/bin/env bash
-set -o errexit -o nounset -o pipefail
-uv pip install dist/*.whl
-test_directory=$(mktemp -d)
-trap 'rm -rf "$test_directory"' EXIT
-cd "$test_directory"
-pytest --pyargs styleforce.tests --cov${PYTEST_COV-} \
-    --cov-report=term-missing:skip-covered --verbose "$@"
 '''
 
 [tasks.twine-check]
