@@ -7,9 +7,11 @@ Covered today:
 * `assignment-read-once` -- inline an assignment read exactly once within the nearest enclosing
   function, or the module outside functions, when that read is in the very next statement.
   Uncovered (hard): a read further down, when no intervening statement could change the value.
+  Uncovered (easy): a read inside an f-string placeholder
 * `function-called-once` -- inline a single-use function whose body runs straight through to one
   trailing `return`, called as `target = name(arg)`, with positional parameters.
-* `standard-identifiers/*` -- unrelated here.
+* `standard-identifiers/*` uncovered (hard): rename a parameter passed as a
+  same-named keyword whose value only contains it, such as `labels=sorted(labels)`.
 
 ## Inline a timezone-offset helper that has only one caller
 
@@ -156,6 +158,21 @@ Steps:
 * Fold `metadata` and `record`, whose f-strings differ only in the trailing `METADATA`/`RECORD`,
   into one generator over the two names, unpacked. Uncovered (hard): spot sibling assignments
   varying by a single literal and rewrite them as an unpacked comprehension.
+
+# Pattern TODO
+
+* Mark side effectors, with user-supplied marks beside well-known defaults such as
+  `time.monotonic()`, `time.perf_counter()`, and `datetime.now()`; never move a marked call across
+  another, so `before = perf_counter(); sleep(1); print(perf_counter() - before)` needs no
+  `grit-ignore`.
+* Combine straight-line `print()` calls into one, joined by `'\n'`; keep separate prints with
+  waits between them, such as `print('Starting'); sleep(1); print('Done')`.
+
+# Interpreter TODO
+
+* Hoist loop-invariant expressions: `assignment-read-once` inlines reads into comprehensions and
+  loops, where CPython re-evaluates them per item. An interpreter or compiler optimization pass
+  could recover the speed; until then, `grit-ignore` performance-sensitive code.
 
 # Release TODO
 

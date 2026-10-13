@@ -15,7 +15,20 @@ function_definition(body=$body) where {
     $body <: not contains function_definition(name=$other) where {
         $other <: not $inner_name
     },
-    $body <: contains `$inner_name` => `inner`
+    $body <: not contains keyword_argument(name=$inner_name, value=$value) where {
+        $value <: not $inner_name
+    },
+    $body <: contains bubble($inner_name) or {
+        keyword_argument(name=$key, value=$value) where {
+            $key <: $inner_name,
+            $value <: $inner_name
+        } => `$key=inner`,
+        identifier() as $reference where {
+            $reference <: $inner_name,
+            $reference <: not within attribute(attribute=$inner_name),
+            $reference <: not within keyword_argument(name=$inner_name)
+        } => `inner`
+    }
 }
 ```
 
