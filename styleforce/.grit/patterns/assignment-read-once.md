@@ -185,7 +185,7 @@ def start_timer() -> Callable[[], float]:
 
 ## Read twice in the next statement remains unchanged
 
-From helicopyter `look_up_staff`; inlining would also corrupt the `'domain'` key.
+From helicopyter `look_up_staff`
 
 ```python
 def look_up_staff(account_id: str, apex: str) -> Block:
