@@ -10,20 +10,21 @@ language python
 
 function_definition() as $function where {
     $function <: contains list_splat_pattern(list=$name),
-    $name <: not `args`,
+    $name <: not or { `args`, `_args` },
+    if ($name <: r"_.*") { $standard = `_args` } else { $standard = `args` },
     $function <: not contains keyword_argument(name=$name, value=$value) where {
         $value <: not $name
     },
-    $function <: contains bubble($name) or {
+    $function <: contains bubble($name, $standard) or {
         keyword_argument(name=$key, value=$value) where {
             $key <: $name,
             $value <: $name
-        } => `$key=args`,
+        } => `$key=$standard`,
         identifier() as $reference where {
             $reference <: $name,
             $reference <: not within attribute(attribute=$name),
             $reference <: not within keyword_argument(name=$name)
-        } => `args`
+        } => `$standard`
     }
 }
 ```
@@ -76,4 +77,27 @@ class Block:
 
 def tag(*args: str) -> Block:
     return Block('tag', labels=args)
+```
+
+## Unused variadic keeps its leading underscore
+
+From spamhammer `list_email`.
+
+```python
+class Command(BaseCommand):
+    def handle(self, *_arguments: object, **_options: object) -> None:
+        print('done')
+```
+
+```python
+class Command(BaseCommand):
+    def handle(self, *_args: object, **_options: object) -> None:
+        print('done')
+```
+
+## Already named '_args': unchanged
+
+```python
+def handle(*_args):
+    return None
 ```
