@@ -90,3 +90,35 @@ def make_handlers():
 
     return get, post
 ```
+
+## Nested inner functions: only the innermost becomes 'inner'
+
+From spamhammer `with_http`, avoiding an `inner` within `inner`.
+
+```python
+def with_http(base_url):
+    def decorate(function):
+        def wrapper():
+            def get(path):
+                return fetch(base_url + path)
+
+            return function(get)
+
+        return wrapper
+
+    return decorate
+```
+
+```python
+def with_http(base_url):
+    def decorate(function):
+        def wrapper():
+            def inner(path):
+                return fetch(base_url + path)
+
+            return function(inner)
+
+        return wrapper
+
+    return decorate
+```
