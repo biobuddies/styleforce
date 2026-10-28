@@ -11,7 +11,7 @@ def _ruff(source: str) -> str:
     return run(['ruff', 'format', '-'], check=True, input=source, stdout=PIPE, text=True).stdout
 
 
-def test_sample(sample: tuple[str, str, str]) -> None:
-    pattern, before, after = sample
-    actual = styleforce.apply(pattern, before, 'snippet.py')
+def test_sample(sample: tuple[str, str, str, str]) -> None:
+    pattern, before, after, filename = sample
+    actual = styleforce.apply(pattern, before, filename)
     assert _ruff(actual) == _ruff(after), actual
