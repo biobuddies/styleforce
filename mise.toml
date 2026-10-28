@@ -31,6 +31,19 @@ tabr="$prefix$((10#${count:-0} + 1))"
 gh release create "$tabr" --generate-notes --target "$(git rev-parse HEAD)"
 '''
 
+[tasks.prebuilt]
+description = "Copy the released wheel's engine unless present, e.g. --refresh-package styleforce"
+run = '''
+#!/usr/bin/env bash
+set -o errexit -o nounset -o pipefail
+# abi3 and gitignored; run outside the checkout, so the source package cannot shadow the wheel
+[[ $# -eq 0 && -f styleforce/_native.abi3.so ]] || cp "$(cd /tmp && uvx "$@" --with styleforce \
+    python -c 'import styleforce._native as native; print(native.__file__)')" styleforce/
+'''
+
+[tasks.test]
+depends = ['prebuilt']
+
 [tasks.twine-check]
 run = 'uvx twine check --strict dist/*'
 
