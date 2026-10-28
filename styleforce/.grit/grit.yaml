@@ -16,5 +16,7 @@ patterns:
       path: .grit/patterns/standard-identifiers/star-star-kwargs.md
     - name: environ-get-getenv
       path: .grit/patterns/environ-get-getenv.md
+    - name: stderr-write-print
+      path: .grit/patterns/stderr-write-print.md
     - name: stdout-write-print
       path: .grit/patterns/stdout-write-print.md
