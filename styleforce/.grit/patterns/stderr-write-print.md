@@ -2,8 +2,9 @@
 title: Print to stderr instead of writing to it
 ---
 
-The stdout rule's twin: `print(text, file=stderr)`, importing `stderr` from `sys` beside any
-existing names, or keeping a qualified `sys.stderr`. Ruff isort then places a new import. Django's
+The stdout rule's twin: `print(text, file=stderr)`, imported one way: `from sys import stderr`,
+beside any existing names or after the docstring. Ruff isort then places a new import, and F401
+drops a `sys` left unused. Django's
 `self.stderr.write` also styles text red, which `print` drops; failures should
 `raise CommandError` instead, which Django prints in red and exits nonzero.
 
@@ -11,30 +12,30 @@ existing names, or keeping a qualified `sys.stderr`. Ruff isort then places a ne
 engine marzano(0.1)
 language python
 
-or {
-    `sys.stderr.write($text)` => `print($text, end='', file=sys.stderr)` where {
+// TODO support Django's ending= and style_func= once a real sample shows them
+module($statements) where {
+    $statements <: contains or { `self.stderr.write($text)`, `sys.stderr.write($text)` } where {
         $text <: not contains keyword_argument()
     },
-    module($statements) where {
-        $statements <: contains `self.stderr.write($text)` where {
-            $text <: not contains keyword_argument()
+    $statements <: or {
+        contains `from sys import $names` as $import where {
+            $names <: not contains `stderr`,
+            $import => `from sys import $names, stderr`
         },
-        $statements <: or {
-            contains `from sys import $names` as $import where {
-                $names <: not contains `stderr`,
-                $import => `from sys import $names, stderr`
-            },
-            contains `from sys import $names` where { $names <: contains `stderr` },
-            [r"(?s)^\"\"\".*", $first, ...] where { $first => `from sys import stderr\n$first` },
-            [$first, ...] where { $first => `from sys import stderr\n$first` }
-        },
-        $statements <: contains bubble `self.stderr.write($text)` where {
-            $text <: not contains keyword_argument(),
+        contains `from sys import $names` where { $names <: contains `stderr` },
+        [r"(?s)^\"\"\".*", $first, ...] where { $first => `from sys import stderr\n$first` },
+        [$first, ...] where { $first => `from sys import stderr\n$first` }
+    },
+    $statements <: contains bubble or {
+        `sys.stderr.write($text)` => `print($text, end='', file=stderr)`,
+        `self.stderr.write($text)` where {
             $text <: or {
                 r"(?s).*\\n['\"]" => `$text, end=''`,
                 $_
             }
         } => `print($text, file=stderr)`
+    } where {
+        $text <: not contains keyword_argument()
     }
 }
 ```
@@ -103,11 +104,16 @@ class Command(BaseCommand):
 Synthetic; no real sample yet.
 
 ```python
+import sys
+
 sys.stderr.write(f'{path}: unchanged\n')
 ```
 
 ```python
-print(f'{path}: unchanged\n', end='', file=sys.stderr)
+from sys import stderr
+import sys
+
+print(f'{path}: unchanged\n', end='', file=stderr)
 ```
 
 ## Style keyword stays put

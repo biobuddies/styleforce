@@ -5,14 +5,15 @@ title: Print instead of writing to stdout
 `print` reads plainest; Django's `self.stdout.write` adds the newline `print` adds, unless the text
 already ends with one, while `sys.stdout.write` needs `end=''`. Literals ending in `\n` gain
 `end=''`; other text ending in a newline would print a blank line. Calls with keyword arguments such
-as Django's `ending` stay put. `print` bypasses `call_command(stdout=...)`, so tests capture with
-pytest's `capsys` instead. Linters flagging `print`, like ruff T201, then need a terse `# noqa`
-outside command line interfaces.
+as Django's `ending` stay put until a real sample shows them. `print` bypasses
+`call_command(stdout=...)`, so tests capture with pytest's `capsys` instead. Linters flagging
+`print`, like ruff T201, then need a terse `# noqa` outside command line interfaces.
 
 ```grit
 engine marzano(0.1)
 language python
 
+// TODO support Django's ending= once a real sample shows it, e.g. ending='' => end=''
 or {
     `self.stdout.write($text)` => `print($text, end='')` where { $text <: r"(?s).*\\n['\"]" },
     `self.stdout.write($text)` => `print($text)`,
