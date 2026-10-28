@@ -5,7 +5,9 @@ title: Inline single-use assignment
 Inline Python assignments that are read exactly once within the nearest enclosing function, or
 the module outside functions, by the very next statement. Inside a lambda or nested function body,
 which runs later, inline only values without calls whose inputs stay unassigned in scope. Skip
-f-string placeholders. Parenthesize operators; keep keyword names and string keys. Reads inside
+f-string placeholders. Uppercase module globals stay in Django settings files, `settings.py` or
+`settings/*.py`, because Django copies them from the module, a read no single file shows.
+Parenthesize operators; keep keyword names and string keys. Reads inside
 comprehensions and loops inline even though they re-run per item; add `grit-ignore` to
 performance-sensitive code.
 
@@ -17,6 +19,17 @@ language python
   $use <: after `$variable = $value
 ` as $assignment,
   $variable <: identifier(),
+  // Django copies uppercase globals from its settings module, an external read
+  not and {
+    $filename <: or {
+      r"settings\.py",
+      r".*/settings\.py",
+      r"settings/[^/]+\.py",
+      r".*/settings/[^/]+\.py"
+    },
+    $variable <: r"[A-Z][A-Z0-9_]*",
+    $assignment <: not within or { class_definition(), function_definition() }
+  },
   $assignment <: within or {
     class_definition(body=block(statements=$statements)),
     function_definition(body=block(statements=$statements)),
@@ -415,4 +428,51 @@ Inlining would evaluate `get_time()` after the `sleep`, so opt out with `grit-ig
 before = get_time()
 sleep(1)
 print(get_time() - before)  # grit-ignore
+```
+
+## Django settings keep uppercase globals
+
+From lynch-library `config/settings.py`.
+
+```python config/settings.py
+R2_URL = environ.get('R2_URL', 'off')
+
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+}
+if not R2_URL.startswith('off'):
+    r2_url = urlparse(R2_URL)
+    STORAGES['library'] = {
+        'BACKEND': 'storages.backends.s3.S3Storage',
+        'OPTIONS': {
+            'access_key': r2_url.username,
+            'bucket_name': r2_url.path.removeprefix('/'),
+            'endpoint_url': f'{r2_url.scheme}://{r2_url.hostname}',
+            'region_name': 'auto',
+            'secret_key': r2_url.password,
+        },
+    }
+```
+
+## Django settings still inline lowercase and function scopes
+
+Synthetic; no real sample yet.
+
+```python config/settings/base.py
+hostname = urlparse(getenv('DATABASE_URL', '')).hostname
+ALLOWED_HOSTS = [hostname]
+
+
+def read_secret():
+    SECRET = Path('/run/secrets/key').read_text()
+    return SECRET.strip()
+```
+
+```python config/settings/base.py
+ALLOWED_HOSTS = [urlparse(getenv('DATABASE_URL', '')).hostname]  # hostname
+
+
+def read_secret():
+    return Path('/run/secrets/key').read_text().strip()  # SECRET
 ```
