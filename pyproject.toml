@@ -47,9 +47,6 @@ extends = '.biobuddies/basedpyright.toml'
 [tool.ruff]
 extend = '.biobuddies/ruff.toml'
 
-[tool.ruff.lint.extend-per-file-ignores]
-'**/conftest.py' = ['PT013']
-
 [tool.pyrefly]
 project-includes = [
     '**/*.py*',
