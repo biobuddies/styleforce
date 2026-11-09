@@ -165,6 +165,8 @@ Steps:
   `time.monotonic()`, `time.perf_counter()`, and `datetime.now()`; never move a marked call across
   another, so `before = perf_counter(); sleep(1); print(perf_counter() - before)` needs no
   `grit-ignore`.
+* Detect command line interfaces, such as `[project.scripts]` targets and `__main__` guards, and
+  add `# noqa: T201` to `print` only outside them; measles exempts CLI paths, not their contents.
 * Combine straight-line `print()` calls into one, joined by `'\n'`; keep separate prints with
   waits between them, such as `print('Starting'); sleep(1); print('Done')`.
 
