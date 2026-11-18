@@ -133,7 +133,9 @@ def render_readme(output: Path, version: str) -> None:
 
 ```python
 def render_readme(output: Path, version: str) -> None:
-    replace(output / 'README.md', '\n'.join((f'# cXML {version}', '', '## Documentation', '')).encode())
+    replace(
+        output / 'README.md', '\n'.join((f'# cXML {version}', '', '## Documentation', '')).encode()
+    )
 ```
 
 ## Keep the existing trailing lint directive
