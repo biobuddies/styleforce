@@ -7,7 +7,7 @@ the module outside functions, by the very next statement. Inside a lambda or nes
 which runs later, inline only values without calls whose inputs stay unassigned in scope. Skip
 f-string placeholders. Uppercase module globals stay in Django settings files, `settings.py` or
 `settings/*.py`, because Django copies them from the module, a read no single file shows.
-Parenthesize operators; keep keyword names and string keys. Reads inside
+Parenthesize operators and keep keyword names, string keys, and existing comments. Reads inside
 comprehensions and loops inline even though they re-run per item; add `grit-ignore` to
 performance-sensitive code.
 
@@ -101,8 +101,6 @@ language python
       $read <: not within keyword_argument(name=$variable)
     } => $value
   },
-  $assignment <: `$name = $value`,
-  $use => `$use_statement  # $name`,
   $assignment => .
 }
 ```
@@ -118,9 +116,37 @@ print(T8M_90964_c23CT)
 ```
 
 ```python
-print(('A01', 'B02'))  # wells
+print(('A01', 'B02'))
 
-print('GGCCGAAGGAGACGCTGCAGT')  # T8M_90964_c23CT
+print('GGCCGAAGGAGACGCTGCAGT')
+```
+
+## Inline a generated README without a variable-name comment
+
+From cXML `render`, with the README text shortened.
+
+```python
+def render_readme(output: Path, version: str) -> None:
+    index = '\n'.join((f'# cXML {version}', '', '## Documentation', ''))
+    replace(output / 'README.md', index.encode())
+```
+
+```python
+def render_readme(output: Path, version: str) -> None:
+    replace(
+        output / 'README.md', '\n'.join((f'# cXML {version}', '', '## Documentation', '')).encode()
+    )
+```
+
+## Keep the existing trailing lint directive
+
+```python
+status = 'verified'
+print(status)  # noqa: T201
+```
+
+```python
+print('verified')  # noqa: T201
 ```
 
 ## Zero assignments remain unchanged
@@ -160,7 +186,7 @@ def provide(self, name: str, **kwargs: Any) -> type[TerraformElement]:
 def provide(self, name: str, **kwargs: Any) -> type[TerraformElement]:
     return getattr(
         import_module(f'cdktf_cdktf_provider_{name}.provider'), f'{name.title()}Provider'
-    )(self, 'this', **kwargs)  # module
+    )(self, 'this', **kwargs)
 ```
 
 ## Read after the enclosing block remains unchanged
@@ -231,7 +257,7 @@ def fqdn(tmp_path: Path, event: str) -> str:
 def look_up_tunnel(account_id: str, apex: str) -> Block:
     return data.cloudflare_zero_trust_tunnel_cloudflared.staff(
         account_id=account_id, filter={'is_deleted': False, 'name': apex.removeprefix('www.')}
-    )  # name
+    )
 
 
 def fqdn(tmp_path: Path, event: str) -> str:
@@ -243,7 +269,7 @@ def fqdn(tmp_path: Path, event: str) -> str:
         )
         .decode()
         .strip()
-    )  # env
+    )
 ```
 
 ## Add parenthesis where needed
@@ -258,7 +284,7 @@ def read_gitignore() -> list[str]:
 
 ```python
 def read_gitignore() -> list[str]:
-    return (Path(environ['PWD']) / '.gitignore').read_text().splitlines()[2:]  # gitignore_path
+    return (Path(environ['PWD']) / '.gitignore').read_text().splitlines()[2:]
 ```
 
 ## Self-referential read in a lambda remains unchanged
@@ -310,7 +336,7 @@ def fake_gitignore(monkeypatch: MonkeyPatch) -> None:
     def inner(path: Path) -> str:
         if path.name == '.gitignore':
             return '# header\n# hashes\n# Node=01d\n# Python=f00d\n# Logs\nlogs\n'
-        raise AssertionError(path)  # existing_gitignore
+        raise AssertionError(path)
 
     monkeypatch.setattr(measles.Path, 'read_text', inner)
 ```
@@ -347,7 +373,7 @@ def test_check_branch(tmp_path: Path, head_ref: str) -> None:
             cwd=tmp_path,
             env={'GITHUB_HEAD_REF': head_ref, 'PATH': environ['PATH']},
             stderr=STDOUT,
-        )  # environment
+        )
 ```
 
 ## Inline into a comprehension
@@ -367,7 +393,7 @@ def render_top_level() -> str:
         block.to_hcl()
         for block in registry
         if id(block) not in {id(value) for block in registry for value in block.attributes.values()}
-    )  # children
+    )
 ```
 
 ## Sentinel read twice remains unchanged
@@ -417,7 +443,7 @@ class HeliStack(TerraformStack):
 ```python
 class HeliStack(TerraformStack):
     def push(self, Element: type[TypeVar('E', bound=TerraformElement)], id_: str) -> None:
-        return Element(self, id_)  # E
+        return Element(self, id_)
 ```
 
 ## Grit-ignore comment disables inlining: expect no rewrite
@@ -470,9 +496,9 @@ def read_secret():
 ```
 
 ```python config/settings/base.py
-ALLOWED_HOSTS = [urlparse(getenv('DATABASE_URL', '')).hostname]  # hostname
+ALLOWED_HOSTS = [urlparse(getenv('DATABASE_URL', '')).hostname]
 
 
 def read_secret():
-    return Path('/run/secrets/key').read_text().strip()  # SECRET
+    return Path('/run/secrets/key').read_text().strip()
 ```
