@@ -24,3 +24,5 @@ patterns:
       path: .grit/patterns/stdout-write-print.md
     - name: percent-format-fstring
       path: .grit/patterns/percent-format-fstring.md
+    - name: sys-exit-system-exit
+      path: .grit/patterns/sys-exit-system-exit.md
