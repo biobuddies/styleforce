@@ -2,7 +2,8 @@
 
 Every ``styleforce/.grit/patterns/**/*.md`` pairs a ```grit`` pattern body with
 ``## `` sample sections: two fenced blocks for a before/after rewrite, one for
-an input that must stay unchanged. A fence may name its file after the language,
+an input that must stay unchanged. An ``error`` fence specifies an expected
+``RuntimeError:`` message. A fence may name its file after the language,
 as in ```python config/settings.py``. This reads those sections and parametrizes a
 ``(pattern, before, after, filename)`` case apiece; :mod:`tests.test_patterns` applies
 each through the bundled native engine (``styleforce.apply``).
