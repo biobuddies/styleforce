@@ -22,3 +22,5 @@ patterns:
       path: .grit/patterns/stderr-write-print.md
     - name: stdout-write-print
       path: .grit/patterns/stdout-write-print.md
+    - name: percent-format-fstring
+      path: .grit/patterns/percent-format-fstring.md

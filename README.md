@@ -7,7 +7,9 @@ in place.
 uvx styleforce file.py
 ```
 
-See [TODO.md](TODO.md) for rewrites not yet covered.
+See [TODO.md](TODO.md) for rewrites not yet covered. Exhaustive support for broken code, like
+`%` format strings with mismatched arguments, is a non-goal: simple patterns may rewrite or skip
+it.
 
 ## Imports
 
