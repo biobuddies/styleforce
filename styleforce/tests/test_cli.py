@@ -23,13 +23,13 @@ def test_main_runs_every_pattern_on_every_file(
 
     styleforce.main([str(filename) for filename in filenames])
 
-    assert len(calls) == 30
+    assert len(calls) == 32
     assert [filename for _, filename in calls] == [
-        str(filename) for filename in filenames for _ in range(15)
+        str(filename) for filename in filenames for _ in range(16)
     ]
     assert all(pattern.startswith('engine marzano') for pattern, _ in calls)
     assert [filename.read_text() for filename in filenames] == [
-        'original' + '\nchanged' * 15,
-        'original' + '\nchanged' * 15,
+        'original' + '\nchanged' * 16,
+        'original' + '\nchanged' * 16,
     ]
     assert capsys.readouterr().out == (f'Reformatted 2 files:\n{filenames[0]}\n{filenames[1]}\n')

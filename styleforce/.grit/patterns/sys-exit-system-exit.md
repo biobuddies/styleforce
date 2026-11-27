@@ -168,6 +168,7 @@ import sys
 callback = sys.exit
 result = sys.exit(1)
 
+
 def stop():
     return sys.exit(2)
 ```
@@ -192,6 +193,7 @@ from sys import exit as sysexit
 
 sys.exit(1)
 sysexit(1)
+
 
 def stop(sys, sysexit):
     sys.exit(2)
