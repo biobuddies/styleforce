@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use marzano_core::api::{FileMatchResult, MatchResult};
 use marzano_core::pattern_compiler::src_to_problem_libs;
 use marzano_language::target_language::PatternLanguage;
@@ -30,12 +30,23 @@ fn run_apply(pattern: &str, source: &str, filename: &str) -> Result<String> {
     )?
     .problem;
     let files = vec![RichFile::new(filename.to_string(), source.to_string())];
+    let mut output = source.to_string();
     for result in problem.execute_files(files, &ExecutionContext::default()) {
-        if let MatchResult::Rewrite(rewrite) = result {
-            return Ok(rewrite.content()?.to_string());
+        match result {
+            MatchResult::AnalysisLog(log)
+                if log.level < 400 || log.message.starts_with("ERROR: ") =>
+            {
+                bail!(
+                    "{}: {}",
+                    log.file,
+                    log.message.trim_start_matches("ERROR: ").trim()
+                );
+            }
+            MatchResult::Rewrite(rewrite) => output = rewrite.content()?.to_string(),
+            _ => {}
         }
     }
-    Ok(source.to_string())
+    Ok(output)
 }
 
 #[pymodule]
